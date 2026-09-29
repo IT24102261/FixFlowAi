@@ -31,11 +31,6 @@ public class RegisterRequestValidator : AbstractValidator<RegisterRequest>
             .Must(InputRules.IsTenDigitPhone)
             .WithMessage("Phone number must be 10 digits.")
             .When(x => !IsTechnician(x) && !string.IsNullOrWhiteSpace(x.Phone));
-        RuleFor(x => x.Email).NotEmpty().EmailAddress();
-        RuleFor(x => x.Password).NotEmpty().MinimumLength(8);
-        RuleFor(x => x.DisplayName).NotEmpty().MaximumLength(200);
-        RuleFor(x => x.Role).NotEmpty();
-        RuleFor(x => x.Phone).NotEmpty().MaximumLength(40).When(IsTechnician);
         RuleFor(x => x.Address).NotEmpty().MaximumLength(400).When(IsTechnician);
         RuleFor(x => x.CategoryId).NotEmpty().When(IsTechnician);
     }
@@ -52,7 +47,6 @@ public class LoginRequestValidator : AbstractValidator<LoginRequest>
             .NotEmpty()
             .Must(InputRules.IsEmail)
             .WithMessage("Enter a valid email with one @.");
-        RuleFor(x => x.Email).NotEmpty().EmailAddress();
         RuleFor(x => x.Password).NotEmpty();
     }
 }
@@ -94,7 +88,6 @@ public class UpdateProfileRequestValidator : AbstractValidator<UpdateProfileRequ
             .Must(InputRules.IsTenDigitPhone)
             .WithMessage("Phone number must be 10 digits.")
             .When(x => !string.IsNullOrWhiteSpace(x.Phone));
-        RuleFor(x => x.Phone).MaximumLength(40).When(x => !string.IsNullOrWhiteSpace(x.Phone));
     }
 }
 
@@ -199,7 +192,6 @@ public class AdminCreateUserRequestValidator : AbstractValidator<AdminCreateUser
             .NotEmpty()
             .Must(InputRules.IsEmail)
             .WithMessage("Enter a valid email with one @.");
-        RuleFor(x => x.Email).NotEmpty().EmailAddress();
         RuleFor(x => x.Password).NotEmpty().MinimumLength(8);
         RuleFor(x => x.DisplayName).NotEmpty().MaximumLength(200);
         RuleFor(x => x.Role).NotEmpty();
@@ -208,8 +200,5 @@ public class AdminCreateUserRequestValidator : AbstractValidator<AdminCreateUser
             .Must(InputRules.IsTenDigitPhone)
             .WithMessage("Phone number must be 10 digits.")
             .When(x => !string.IsNullOrWhiteSpace(x.Phone));
-    }
-}
-        RuleFor(x => x.Phone).MaximumLength(40).When(x => !string.IsNullOrWhiteSpace(x.Phone));
     }
 }
