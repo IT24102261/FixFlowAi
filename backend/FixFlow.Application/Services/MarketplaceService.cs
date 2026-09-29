@@ -36,27 +36,30 @@ public class MarketplaceService(
             .Where(x =>
                 x.TechnicianId == profile.Id
                 && x.Request.Status != ServiceRequestStatus.Cancelled
-                && !x.Request.Description.StartsWith("[Demo]"))
+                && (x.Request.Description == null || !x.Request.Description.StartsWith("[Demo]")))
             .OrderByDescending(x => x.SentAt)
             .ToListAsync(cancellationToken);
-        return items.Select(MapInvitation).ToList();
+        var booked = await BookedRequestIdsAsync(items.Select(x => x.RequestId), cancellationToken);
+        return items.Select(item => MapInvitation(item, !booked.Contains(item.RequestId))).ToList();
     }
 
     public async Task<InvitationDto> GetInvitationAsync(Guid id, CancellationToken cancellationToken = default)
     {
         var invitation = await LoadInvitation(id, cancellationToken);
         await EnsureInvitationAccess(invitation, cancellationToken);
-        return MapInvitation(invitation);
+        var booked = await HasActiveBookingAsync(invitation.RequestId, cancellationToken);
+        return MapInvitation(invitation, !booked);
     }
 
     public async Task<InvitationDto> AcceptInvitationAsync(Guid id, CancellationToken cancellationToken = default)
     {
         var invitation = await LoadInvitation(id, cancellationToken);
         var profile = await EnsureInvitationAccess(invitation, cancellationToken);
+        await EnsureRequestOpenForQuotes(invitation.Request, cancellationToken);
         await EnsureCategoryApproved(profile.Id, invitation.Request.CategoryId, cancellationToken);
         invitation.Status = InvitationStatus.Accepted;
         await unitOfWork.SaveChangesAsync(cancellationToken);
-        return MapInvitation(invitation);
+        return MapInvitation(invitation, true);
     }
 
     public async Task<InvitationDto> DeclineInvitationAsync(Guid id, CancellationToken cancellationToken = default)
@@ -65,7 +68,7 @@ public class MarketplaceService(
         await EnsureInvitationAccess(invitation, cancellationToken);
         invitation.Status = InvitationStatus.Declined;
         await unitOfWork.SaveChangesAsync(cancellationToken);
-        return MapInvitation(invitation);
+        return MapInvitation(invitation, false);
     }
 
     public async Task<QuoteDto> CreateQuoteAsync(Guid invitationId, QuoteWriteRequest request, CancellationToken cancellationToken = default)
@@ -73,8 +76,9 @@ public class MarketplaceService(
         ValidateTotals(request);
         var invitation = await LoadInvitation(invitationId, cancellationToken);
         var profile = await EnsureInvitationAccess(invitation, cancellationToken);
+        await EnsureRequestOpenForQuotes(invitation.Request, cancellationToken);
         await EnsureCategoryApproved(profile.Id, invitation.Request.CategoryId, cancellationToken);
-        if (invitation.Status == InvitationStatus.Declined)
+        if (invitation.Status == InvitationStatus.Declined || invitation.Status == InvitationStatus.Expired)
         {
             throw new ConflictException("Cannot quote a declined invitation.");
         }
@@ -182,6 +186,7 @@ public class MarketplaceService(
             dto.AverageRating = technician?.AverageRating;
             dto.ReviewCount = technician?.ReviewCount;
             dto.CompletedJobs = completedByTechnician.GetValueOrDefault(quote.TechnicianId);
+            dto.ProfilePhotoUrl = TechnicianPhotoUrl.For(quote.TechnicianId, technician?.ProfilePhotoStorageKey);
             await AttachApproximateDistance(dto, request, technician, cancellationToken);
             result.Add(dto);
         }
@@ -210,6 +215,10 @@ public class MarketplaceService(
 
         var dto = MapQuote(quote);
         var technician = await profiles.GetByIdAsync(quote.TechnicianId, cancellationToken);
+        dto.TechnicianDisplayName = technician?.User?.DisplayName;
+        dto.AverageRating = technician?.AverageRating;
+        dto.ReviewCount = technician?.ReviewCount;
+        dto.ProfilePhotoUrl = TechnicianPhotoUrl.For(quote.TechnicianId, technician?.ProfilePhotoStorageKey);
         if (request is not null)
         {
             await AttachApproximateDistance(dto, request, technician, cancellationToken);
@@ -242,7 +251,7 @@ public class MarketplaceService(
         var quote = await quotations.Query()
             .Include(x => x.Request).ThenInclude(x => x.Customer)
             .Include(x => x.Request).ThenInclude(x => x.Category)
-            .Include(x => x.Technician)
+            .Include(x => x.Technician).ThenInclude(x => x.User)
             .FirstOrDefaultAsync(x => x.Id == quoteId, cancellationToken)
             ?? throw new NotFoundException("Quote not found.");
 
@@ -303,7 +312,11 @@ public class MarketplaceService(
                 QuotationId = quote.Id,
                 CustomerId = quote.Request.CustomerId,
                 TechnicianId = quote.TechnicianId,
-                Status = BookingStatus.PendingValidation
+                Status = BookingStatus.PendingValidation,
+                Request = quote.Request,
+                Quotation = quote,
+                Customer = quote.Request.Customer,
+                Technician = quote.Technician
             };
             await bookings.AddAsync(booking, cancellationToken);
             await bookingHistory.AddAsync(new BookingStatusHistory
@@ -661,6 +674,39 @@ public class MarketplaceService(
         }
     }
 
+    private async Task EnsureRequestOpenForQuotes(ServiceRequest request, CancellationToken cancellationToken)
+    {
+        if (request.Status == ServiceRequestStatus.Cancelled)
+        {
+            throw new ConflictException("This request was cancelled by the customer. Quotations are no longer accepted.");
+        }
+
+        if (!ServiceRequestRules.AllowsQuotations(request.Status) || await HasActiveBookingAsync(request.Id, cancellationToken))
+        {
+            throw new ConflictException("This job has already been accepted by another technician. Quotations are no longer accepted.");
+        }
+    }
+
+    private async Task<bool> HasActiveBookingAsync(Guid requestId, CancellationToken cancellationToken) =>
+        await bookings.Query().AnyAsync(
+            x => x.RequestId == requestId && BookingStateMachine.Active.Contains(x.Status),
+            cancellationToken);
+
+    private async Task<HashSet<Guid>> BookedRequestIdsAsync(IEnumerable<Guid> requestIds, CancellationToken cancellationToken)
+    {
+        var ids = requestIds.Distinct().ToList();
+        if (ids.Count == 0)
+        {
+            return [];
+        }
+
+        var booked = await bookings.Query()
+            .Where(x => ids.Contains(x.RequestId) && BookingStateMachine.Active.Contains(x.Status))
+            .Select(x => x.RequestId)
+            .ToListAsync(cancellationToken);
+        return booked.ToHashSet();
+    }
+
     private async Task NotifyOtherTechniciansJobTakenAsync(
         Guid requestId,
         Guid bookedTechnicianId,
@@ -778,17 +824,25 @@ public class MarketplaceService(
         dto.DistanceBand = distance.DistanceUnavailable ? null : distance.Band;
     }
 
-    private static InvitationDto MapInvitation(RequestInvitation invitation) => new()
+    private static InvitationDto MapInvitation(RequestInvitation invitation, bool requestStillOpen)
     {
-        Id = invitation.Id,
-        RequestId = invitation.RequestId,
-        TechnicianId = invitation.TechnicianId,
-        Status = EnumMap.ToApi(invitation.Status),
-        SentAt = invitation.SentAt,
-        ServiceArea = invitation.Request.ServiceArea,
-        CategoryName = invitation.Request.Category?.Name,
-        Description = invitation.Request.Description
-    };
+        var requestStatus = invitation.Request.Status;
+        return new InvitationDto
+        {
+            Id = invitation.Id,
+            RequestId = invitation.RequestId,
+            TechnicianId = invitation.TechnicianId,
+            Status = EnumMap.ToApi(invitation.Status),
+            SentAt = invitation.SentAt,
+            ServiceArea = invitation.Request.ServiceArea,
+            CategoryName = invitation.Request.Category?.Name,
+            Description = invitation.Request.Description,
+            RequestStatus = EnumMap.ToApi(requestStatus),
+            CanQuote = requestStillOpen
+                && invitation.Status is not InvitationStatus.Declined and not InvitationStatus.Expired
+                && ServiceRequestRules.AllowsQuotations(requestStatus)
+        };
+    }
 
     private static void ApplyRecommendationExplanations(List<QuoteDto> quotes, DateTimeOffset? preferredStart)
     {
@@ -905,6 +959,7 @@ public class MarketplaceService(
         PreferredStart = booking.Request.PreferredStart,
         QuoteTotalAmount = booking.Quotation?.TotalAmount,
         Currency = booking.Quotation?.Currency,
+        ProfilePhotoUrl = TechnicianPhotoUrl.For(booking.TechnicianId, booking.Technician?.ProfilePhotoStorageKey),
         Version = booking.Version
     };
 

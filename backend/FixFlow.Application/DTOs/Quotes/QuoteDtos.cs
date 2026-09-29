@@ -44,6 +44,7 @@ public class QuoteDto
     public string? RecommendationSummary { get; set; }
     public List<string> Strengths { get; set; } = [];
     public List<string> Tradeoffs { get; set; } = [];
+    public string? ProfilePhotoUrl { get; set; }
 }
 
 public class InvitationDto
@@ -56,6 +57,8 @@ public class InvitationDto
     public string? ServiceArea { get; set; }
     public string? CategoryName { get; set; }
     public string Description { get; set; } = string.Empty;
+    public string RequestStatus { get; set; } = string.Empty;
+    public bool CanQuote { get; set; }
 }
 
 public class ConfirmBookingRequest
@@ -92,6 +95,7 @@ public class BookingDto
     public DateTimeOffset? PreferredStart { get; set; }
     public decimal? QuoteTotalAmount { get; set; }
     public string? Currency { get; set; }
+    public string? ProfilePhotoUrl { get; set; }
     public int Version { get; set; }
 }
 
