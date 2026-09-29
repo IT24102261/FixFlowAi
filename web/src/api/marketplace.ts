@@ -38,3 +38,4 @@ export const marketplaceApi = {
   decideScopeChange: (id: string, decision: string) =>
     apiClient.post<ScopeChangeDto>(`/api/bookings/scope-changes/${id}/decision`, { decision }).then((r) => r.data),
 }
+}
