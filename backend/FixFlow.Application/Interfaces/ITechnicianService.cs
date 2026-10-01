@@ -12,6 +12,7 @@ public interface ITechnicianService
     Task<IReadOnlyList<TechnicianApplicationDto>> ListMineAsync(CancellationToken cancellationToken = default);
     Task<TechnicianApplicationDto> GetMineAsync(Guid id, CancellationToken cancellationToken = default);
     Task<DocumentDto> AddDocumentAsync(Guid applicationId, string evidenceType, string fileName, string contentType, Stream content, CancellationToken cancellationToken = default);
+    Task<TechnicianPhotoFile> GetDocumentFileAsync(Guid applicationId, Guid documentId, CancellationToken cancellationToken = default);
     Task<PagedResult<TechnicianApplicationDto>> AdminListAsync(PagedQuery query, CancellationToken cancellationToken = default);
     Task<TechnicianApplicationDto> AdminGetAsync(Guid id, CancellationToken cancellationToken = default);
     Task<TechnicianApplicationDto> ApproveAsync(Guid id, ApplicationDecisionRequest request, CancellationToken cancellationToken = default);
@@ -21,6 +22,7 @@ public interface ITechnicianService
     Task<TechnicianApplicationDto> SuspendApplicationAsync(Guid id, ApplicationDecisionRequest request, CancellationToken cancellationToken = default);
     Task<PublicTechnicianDto> GetPublicAsync(Guid technicianId, CancellationToken cancellationToken = default);
     Task<TechnicianPhotoFile?> GetPhotoAsync(Guid technicianId, CancellationToken cancellationToken = default);
+    Task<TechnicianProfileDto> SetProfilePhotoAsync(Guid technicianId, string fileName, string contentType, Stream content, CancellationToken cancellationToken = default);
     Task<TechnicianProfileDto> SuspendTechnicianAsync(Guid technicianId, ApplicationDecisionRequest request, CancellationToken cancellationToken = default);
     Task<TechnicianProfileDto> ReactivateTechnicianAsync(Guid technicianId, ApplicationDecisionRequest request, CancellationToken cancellationToken = default);
 }

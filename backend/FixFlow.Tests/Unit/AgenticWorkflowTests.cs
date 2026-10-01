@@ -102,7 +102,35 @@ public class AgenticWorkflowTests
         Assert.False(planning.TryGetProperty("quantity", out var quantity) && quantity.ValueKind is JsonValueKind.Number);
         Assert.Contains(
             planning.GetProperty("clarificationQuestions").EnumerateArray().Select(x => x.GetString()),
-            question => question != null && question.Contains("number of switches", StringComparison.OrdinalIgnoreCase));
+            question => question != null && question.Contains("How many need to be changed?", StringComparison.OrdinalIgnoreCase));
+        Assert.Empty(harness.Invitations.Items);
+    }
+
+    [Fact]
+    public async Task ChangePlugWithoutCount_AsksHowManyBeforeTechniciansAreInvited()
+    {
+        var harness = Harness.Create();
+        var request = harness.SeedGoldenRequest();
+        request.Description = "i want to change plug";
+        request.CategoryId = ServiceCategorySeed.Electrician;
+
+        var started = await harness.Orchestrator.StartRequestWorkflowAsync(request.Id);
+
+        Assert.Equal("CLARIFICATION_REQUIRED", started.Status);
+        Assert.Empty(harness.Invitations.Items);
+        using var plan = JsonDocument.Parse(started.PlanJson);
+        var questions = plan.RootElement.GetProperty("planning").GetProperty("clarificationQuestions").EnumerateArray().Select(x => x.GetString());
+        Assert.Contains(questions, question => question != null && question.Contains("How many need to be changed?", StringComparison.OrdinalIgnoreCase));
+
+        harness.Clarifications.Items.Add(new RequestClarification
+        {
+            RequestId = request.Id,
+            AuthorId = request.CustomerId,
+            Message = "2"
+        });
+        var resumed = await harness.Orchestrator.ResumeAfterClarificationAsync(request.Id);
+        Assert.Equal("QUOTE_COLLECTION", resumed.Status);
+        Assert.NotEmpty(harness.Invitations.Items);
     }
 
     [Fact]
@@ -145,6 +173,36 @@ public class AgenticWorkflowTests
         var result = await harness.Orchestrator.ValidateSelectedQuoteAsync(request.Id, quote.Id, request.CustomerId);
         Assert.False(result.Validation?.BookingAllowed);
         Assert.Contains(result.Validation?.Errors ?? [], x => x.Contains("Expired", StringComparison.OrdinalIgnoreCase));
+    }
+
+    [Fact]
+    public async Task FinishedJobs_DoNotBlockApprovedTechnicians_ButOpenJobsDo()
+    {
+        var harness = Harness.Create();
+        var request = harness.SeedGoldenRequest();
+        var finished = harness.VerifiedElectrician;
+        var stillWorking = harness.AddTechnician("working@fixflow.test", "Jaffna", approved: true);
+
+        for (var i = 0; i < CheckCapacityTool.MaxActiveJobs; i++)
+        {
+            harness.Bookings.Items.Add(new Booking
+            {
+                RequestId = Guid.NewGuid(),
+                TechnicianId = finished.Id,
+                Status = BookingStatus.CustomerConfirmed
+            });
+            harness.Bookings.Items.Add(new Booking
+            {
+                RequestId = Guid.NewGuid(),
+                TechnicianId = stillWorking.Id,
+                Status = BookingStatus.InProgress
+            });
+        }
+
+        await harness.Orchestrator.StartRequestWorkflowAsync(request.Id);
+
+        Assert.Contains(harness.Invitations.Items, x => x.TechnicianId == finished.Id);
+        Assert.DoesNotContain(harness.Invitations.Items, x => x.TechnicianId == stillWorking.Id);
     }
 
     [Fact]

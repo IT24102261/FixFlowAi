@@ -11,6 +11,7 @@ namespace FixFlow.Application.Services;
 
 public class TechnicianService(
     IRepository<TechnicianProfile> profiles,
+    IRepository<TechnicianProfileImage> profileImages,
     IRepository<TechnicianCategoryApplication> applications,
     IRepository<TechnicianDocument> documents,
     IRepository<ServiceCategory> categories,
@@ -84,6 +85,8 @@ public class TechnicianService(
         var profile = await RequireProfile(cancellationToken);
         var items = await applications.Query()
             .Include(x => x.Category)
+            .Include(x => x.Documents)
+            .Include(x => x.Technician).ThenInclude(x => x.User)
             .Where(x => x.TechnicianId == profile.Id)
             .OrderByDescending(x => x.SubmittedAt)
             .ToListAsync(cancellationToken);
@@ -127,20 +130,43 @@ public class TechnicianService(
         };
         await documents.AddAsync(document, cancellationToken);
         await unitOfWork.SaveChangesAsync(cancellationToken);
-        return new DocumentDto
+        return MapDocument(document);
+    }
+
+    public async Task<TechnicianPhotoFile> GetDocumentFileAsync(Guid applicationId, Guid documentId, CancellationToken cancellationToken = default)
+    {
+        var application = await applications.Query()
+            .Include(x => x.Documents)
+            .Include(x => x.Technician)
+            .FirstOrDefaultAsync(x => x.Id == applicationId, cancellationToken)
+            ?? throw new NotFoundException("Application not found.");
+
+        if (!currentUser.IsAdmin)
         {
-            Id = document.Id,
-            EvidenceType = EnumMap.ToApi(document.EvidenceType),
-            StorageKey = document.StorageKey,
-            MimeType = document.MimeType,
-            ReviewStatus = EnumMap.ToApi(document.ReviewStatus),
-            UploadedAt = document.UploadedAt
-        };
+            var profile = await RequireProfile(cancellationToken);
+            if (application.TechnicianId != profile.Id)
+            {
+                throw new ForbiddenException();
+            }
+        }
+
+        var document = application.Documents.FirstOrDefault(x => x.Id == documentId)
+            ?? throw new NotFoundException("Document not found.");
+        await using var source = await files.OpenAsync(document.StorageKey, cancellationToken);
+        var copy = new MemoryStream();
+        await source.CopyToAsync(copy, cancellationToken);
+        copy.Position = 0;
+        var contentType = string.IsNullOrWhiteSpace(document.MimeType) ? "application/octet-stream" : document.MimeType;
+        return new TechnicianPhotoFile(copy, contentType);
     }
 
     public async Task<PagedResult<TechnicianApplicationDto>> AdminListAsync(PagedQuery query, CancellationToken cancellationToken = default)
     {
-        var source = applications.Query().Include(x => x.Category).AsQueryable();
+        var source = applications.Query()
+            .Include(x => x.Category)
+            .Include(x => x.Documents)
+            .Include(x => x.Technician).ThenInclude(x => x.User)
+            .AsQueryable();
         if (!string.IsNullOrWhiteSpace(query.Status))
         {
             var status = EnumMap.Parse<ApplicationStatus>(query.Status);
@@ -190,8 +216,82 @@ public class TechnicianService(
             AverageRating = mapped.AverageRating,
             ReviewCount = mapped.ReviewCount,
             CompletedJobs = mapped.CompletedJobs,
-            ServiceSummary = string.IsNullOrWhiteSpace(mapped.ExperienceSummary) ? mapped.Bio : mapped.ExperienceSummary
+            ServiceSummary = string.IsNullOrWhiteSpace(mapped.ExperienceSummary) ? mapped.Bio : mapped.ExperienceSummary,
+            ProfilePhotoUrl = mapped.ProfilePhotoUrl
         };
+    }
+
+    public async Task<TechnicianPhotoFile?> GetPhotoAsync(Guid technicianId, CancellationToken cancellationToken = default)
+    {
+        var stored = await profileImages.Query().FirstOrDefaultAsync(x => x.TechnicianId == technicianId, cancellationToken);
+        if (stored is { Content.Length: > 0 })
+        {
+            return new TechnicianPhotoFile(new MemoryStream(stored.Content), stored.MimeType);
+        }
+
+        var profile = await profiles.GetByIdAsync(technicianId, cancellationToken)
+            ?? throw new NotFoundException("Technician not found.");
+        if (string.IsNullOrWhiteSpace(profile.ProfilePhotoStorageKey))
+        {
+            return null;
+        }
+
+        try
+        {
+            await using var stream = await files.OpenAsync(profile.ProfilePhotoStorageKey, cancellationToken);
+            using var buffer = new MemoryStream();
+            await stream.CopyToAsync(buffer, cancellationToken);
+            if (buffer.Length == 0)
+            {
+                return null;
+            }
+
+            var bytes = buffer.ToArray();
+            var mime = string.IsNullOrWhiteSpace(profile.ProfilePhotoMimeType) ? "image/jpeg" : profile.ProfilePhotoMimeType;
+            await SaveProfileImageAsync(profile.Id, bytes, mime, cancellationToken);
+            await unitOfWork.SaveChangesAsync(cancellationToken);
+            return new TechnicianPhotoFile(new MemoryStream(bytes), mime);
+        }
+        catch (NotFoundException)
+        {
+            return null;
+        }
+    }
+
+    public async Task<TechnicianProfileDto> SetProfilePhotoAsync(Guid technicianId, string fileName, string contentType, Stream content, CancellationToken cancellationToken = default)
+    {
+        var profile = await profiles.Query().Include(x => x.User).FirstOrDefaultAsync(x => x.Id == technicianId, cancellationToken)
+            ?? throw new NotFoundException("Technician not found.");
+
+        await using var buffer = new MemoryStream();
+        await content.CopyToAsync(buffer, cancellationToken);
+        UploadRules.EnsureImage(contentType, buffer.Length);
+        var bytes = buffer.ToArray();
+        var key = $"{Guid.NewGuid():N}_{Path.GetFileName(fileName)}";
+        try
+        {
+            buffer.Position = 0;
+            key = await files.SaveAsync($"profiles/{profile.Id}", fileName, buffer, cancellationToken);
+        }
+        catch (IOException)
+        {
+            // The database copy is the copy that survives a deploy.
+        }
+
+        profile.ProfilePhotoStorageKey = key;
+        profile.ProfilePhotoMimeType = contentType;
+        profile.UpdatedAt = DateTimeOffset.UtcNow;
+        await SaveProfileImageAsync(profile.Id, bytes, contentType, cancellationToken);
+        await audits.AddAsync(new AuditLog
+        {
+            ActorId = currentUser.UserId,
+            Action = "TECHNICIAN_PHOTO_SET",
+            Entity = "TechnicianProfile",
+            EntityId = profile.Id,
+            Outcome = AuditOutcome.Success
+        }, cancellationToken);
+        await unitOfWork.SaveChangesAsync(cancellationToken);
+        return await Map(profile, cancellationToken);
     }
 
     public Task<TechnicianProfileDto> SuspendTechnicianAsync(Guid technicianId, ApplicationDecisionRequest request, CancellationToken cancellationToken = default) =>
@@ -238,12 +338,35 @@ public class TechnicianService(
         return MapSync(application);
     }
 
+    private async Task SaveProfileImageAsync(Guid technicianId, byte[] bytes, string mimeType, CancellationToken cancellationToken)
+    {
+        var image = await profileImages.Query().FirstOrDefaultAsync(x => x.TechnicianId == technicianId, cancellationToken);
+        if (image is null)
+        {
+            await profileImages.AddAsync(new TechnicianProfileImage
+            {
+                TechnicianId = technicianId,
+                Content = bytes,
+                MimeType = mimeType
+            }, cancellationToken);
+            return;
+        }
+
+        image.Content = bytes;
+        image.MimeType = mimeType;
+        image.UpdatedAt = DateTimeOffset.UtcNow;
+    }
+
     private async Task<TechnicianProfile> RequireProfile(CancellationToken cancellationToken) =>
         await profiles.Query().Include(x => x.User).FirstOrDefaultAsync(x => x.UserId == currentUser.UserId, cancellationToken)
         ?? throw new NotFoundException("Technician profile not found. Create a profile first.");
 
     private async Task<TechnicianCategoryApplication> LoadApplication(Guid id, CancellationToken cancellationToken) =>
-        await applications.Query().Include(x => x.Category).FirstOrDefaultAsync(x => x.Id == id, cancellationToken)
+        await applications.Query()
+            .Include(x => x.Category)
+            .Include(x => x.Documents)
+            .Include(x => x.Technician).ThenInclude(x => x.User)
+            .FirstOrDefaultAsync(x => x.Id == id, cancellationToken)
         ?? throw new NotFoundException("Application not found.");
 
     private void EnsureTechnician()
@@ -290,7 +413,8 @@ public class TechnicianService(
             AverageRating = profile.AverageRating,
             ReviewCount = profile.ReviewCount,
             ApprovedCategories = approved,
-            CompletedJobs = completedJobs
+            CompletedJobs = completedJobs,
+            ProfilePhotoUrl = TechnicianPhotoUrl.For(profile.Id, profile.ProfilePhotoStorageKey)
         };
     }
 
@@ -300,10 +424,30 @@ public class TechnicianService(
         TechnicianId = application.TechnicianId,
         CategoryId = application.CategoryId,
         CategoryName = application.Category?.Name,
+        TechnicianDisplayName = application.Technician?.User?.DisplayName,
+        TechnicianEmail = application.Technician?.User?.Email,
+        ProfilePhotoUrl = TechnicianPhotoUrl.For(application.TechnicianId, application.Technician?.ProfilePhotoStorageKey),
         Status = EnumMap.ToApi(application.Status),
         SubmittedAt = application.SubmittedAt,
         DecidedAt = application.DecidedAt,
         DecisionNotes = application.DecisionNotes,
-        Version = application.Version
+        Version = application.Version,
+        EvidenceCount = application.Documents.Count,
+        Documents = application.Documents
+            .OrderBy(x => x.UploadedAt)
+            .Select(MapDocument)
+            .ToList()
+    };
+
+    private static DocumentDto MapDocument(TechnicianDocument document) => new()
+    {
+        Id = document.Id,
+        EvidenceType = EnumMap.ToApi(document.EvidenceType),
+        StorageKey = document.StorageKey,
+        MimeType = document.MimeType,
+        ReviewStatus = EnumMap.ToApi(document.ReviewStatus),
+        UploadedAt = document.UploadedAt,
+        Url = TechnicianDocumentUrl.For(document.ApplicationId, document.Id),
+        Issuer = document.Issuer
     };
 }

@@ -11,8 +11,9 @@ import { PageHeader } from '../../components/ui/PageHeader'
 import { StatusBadge } from '../../components/ui/StatusBadge'
 import { useToastStore } from '../../store/toastStore'
 import type { InvitationDto, QuoteDto } from '../../types/api'
-import { formatMoney } from '../../utils/format'
+import { formatDate, formatMoney } from '../../utils/format'
 import { getApiError } from '../../utils/errors'
+import { datetimeLocalMin, isFutureDateTime } from '../../utils/validation'
 
 export function TechnicianQuotationsPage() {
   const push = useToastStore((state) => state.push)
@@ -32,7 +33,7 @@ export function TechnicianQuotationsPage() {
   const [validation, setValidation] = useState('')
 
   const quotable = useMemo(
-    () => invitations.filter((item) => item.status !== 'DECLINED'),
+    () => invitations.filter((item) => item.canQuote !== false && item.status !== 'DECLINED'),
     [invitations],
   )
   const selected = quotable.find((item) => item.id === invitationId)
@@ -44,11 +45,13 @@ export function TechnicianQuotationsPage() {
         const list = Array.isArray(items) ? items : []
         setInvitations(list)
         const preferred = searchParams.get('invitationId')
-        const open = list.filter((item) => item.status !== 'DECLINED')
+        const open = list.filter((item) => item.canQuote !== false && item.status !== 'DECLINED')
         if (preferred && open.some((item) => item.id === preferred)) {
           setInvitationId(preferred)
         } else if (open.length === 1) {
           setInvitationId(open[0].id)
+        } else if (preferred && !open.some((item) => item.id === preferred)) {
+          setInvitationId('')
         }
         const collected: QuoteDto[] = []
         for (const item of list) {
@@ -70,6 +73,10 @@ export function TechnicianQuotationsPage() {
     event.preventDefault()
     if (!invitationId) {
       setValidation('Select an invitation.')
+      return
+    }
+    if (!arrivalStart || !isFutureDateTime(arrivalStart)) {
+      setValidation('Choose a future arrival date and time. Past dates are not allowed.')
       return
     }
     setValidation('')
@@ -145,6 +152,10 @@ export function TechnicianQuotationsPage() {
               <div className="border border-[#e6dccb] bg-[#f4efe6] p-4">
                 <p className="text-sm font-semibold text-slate-900">{selected.categoryName || 'Service request'}</p>
                 <p className="mt-1 text-sm leading-6 text-slate-600">{selected.description || 'No description'}</p>
+                <p className="mt-2 text-sm font-medium text-[#171717]">
+                  Preferred appointment:{' '}
+                  {selected.preferredStart ? formatDate(selected.preferredStart) : 'Not set'}
+                </p>
                 <p className="mt-2 text-xs text-slate-500">{selected.serviceArea || 'Area not set'}</p>
               </div>
             ) : (
@@ -180,7 +191,12 @@ export function TechnicianQuotationsPage() {
           <SectionLabel>Quote details</SectionLabel>
           <div className="mt-5 grid gap-5 md:grid-cols-2">
             <FormField label="Proposed arrival">
-              <TextInput type="datetime-local" value={arrivalStart} onChange={(event) => setArrivalStart(event.target.value)} />
+              <TextInput
+                type="datetime-local"
+                min={datetimeLocalMin()}
+                value={arrivalStart}
+                onChange={(event) => setArrivalStart(event.target.value)}
+              />
             </FormField>
             <FormField label="Assumptions">
               <TextArea value={assumptions} onChange={(event) => setAssumptions(event.target.value)} />

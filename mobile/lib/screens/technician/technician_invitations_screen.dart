@@ -49,7 +49,7 @@ class _TechnicianInvitationsScreenState extends ConsumerState<TechnicianInvitati
           : _error != null
               ? ErrorView(message: _error!, onRetry: _load)
               : _items.isEmpty
-                  ? const EmptyView(message: 'No invitations yet.')
+                  ? const EmptyView(message: 'No invitations yet. If a customer cancels a job, it leaves this list and shows under Notifications.')
                   : ListView(
                       padding: const EdgeInsets.all(16),
                       children: _items
@@ -67,6 +67,11 @@ class _TechnicianInvitationsScreenState extends ConsumerState<TechnicianInvitati
                                       ],
                                     ),
                                     Text(item.description),
+                                    Text(
+                                      item.preferredStart == null
+                                          ? 'Preferred appointment: not set'
+                                          : 'Preferred appointment: ${formatDate(item.preferredStart)}',
+                                    ),
                                     Text('Area: ${item.serviceArea ?? 'approximate only'}'),
                                     Text(formatDate(item.sentAt)),
                                     if (!item.canQuote)

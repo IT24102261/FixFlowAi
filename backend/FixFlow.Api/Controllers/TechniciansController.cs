@@ -24,6 +24,34 @@ public class TechniciansController(ITechnicianService technicians, IReviewServic
     public async Task<IActionResult> UpdateProfile(TechnicianProfileRequest request, CancellationToken cancellationToken) =>
         Ok(await technicians.UpdateProfileAsync(request, cancellationToken));
 
+    [HttpPost("profile/photo")]
+    [RequestSizeLimit(6_000_000)]
+    public async Task<IActionResult> UpdateOwnPhoto([FromForm] IFormFile file, CancellationToken cancellationToken)
+    {
+        if (file is null || file.Length == 0)
+        {
+            return BadRequest(new { error = "Upload a profile photo.", code = "VALIDATION_FAILED" });
+        }
+
+        var profile = await technicians.GetProfileAsync(cancellationToken);
+        await using var stream = file.OpenReadStream();
+        return Ok(await technicians.SetProfilePhotoAsync(profile.Id, file.FileName, file.ContentType ?? "application/octet-stream", stream, cancellationToken));
+    }
+
+    [HttpGet("{technicianId:guid}/photo")]
+    [AllowAnonymous]
+    public async Task<IActionResult> Photo(Guid technicianId, CancellationToken cancellationToken)
+    {
+        var photo = await technicians.GetPhotoAsync(technicianId, cancellationToken);
+        if (photo is null)
+        {
+            return NotFound();
+        }
+
+        Response.Headers.CacheControl = "no-cache, no-store";
+        return File(photo.Content, photo.ContentType);
+    }
+
     [HttpGet("{technicianId:guid}/public")]
     [AllowAnonymous]
     public async Task<IActionResult> Public(Guid technicianId, CancellationToken cancellationToken) =>
@@ -56,6 +84,14 @@ public class TechnicianApplicationsController(
     [HttpGet("{id:guid}")]
     public async Task<IActionResult> Get(Guid id, CancellationToken cancellationToken) =>
         Ok(await technicians.GetMineAsync(id, cancellationToken));
+
+    [HttpGet("{id:guid}/documents/{documentId:guid}")]
+    public async Task<IActionResult> Document(Guid id, Guid documentId, CancellationToken cancellationToken)
+    {
+        var file = await technicians.GetDocumentFileAsync(id, documentId, cancellationToken);
+        Response.Headers.CacheControl = "private, max-age=60";
+        return File(file.Content, file.ContentType);
+    }
 
     [HttpPost("{id:guid}/documents")]
     public async Task<IActionResult> Documents(Guid id, IFormFile file, [FromForm] string evidenceType, CancellationToken cancellationToken)
@@ -109,6 +145,19 @@ public class AdminTechnicianApplicationsController(ITechnicianService technician
 [Route("api/admin/technicians")]
 public class AdminTechniciansController(ITechnicianService technicians) : ControllerBase
 {
+    [HttpPost("{id:guid}/photo")]
+    [RequestSizeLimit(6_000_000)]
+    public async Task<IActionResult> Photo(Guid id, [FromForm] IFormFile file, CancellationToken cancellationToken)
+    {
+        if (file is null || file.Length == 0)
+        {
+            return BadRequest(new { error = "Upload a profile photo.", code = "VALIDATION_FAILED" });
+        }
+
+        await using var stream = file.OpenReadStream();
+        return Ok(await technicians.SetProfilePhotoAsync(id, file.FileName, file.ContentType ?? "application/octet-stream", stream, cancellationToken));
+    }
+
     [HttpPost("{id:guid}/suspend")]
     public async Task<IActionResult> Suspend(Guid id, ApplicationDecisionRequest request, CancellationToken cancellationToken) =>
         Ok(await technicians.SuspendTechnicianAsync(id, request, cancellationToken));

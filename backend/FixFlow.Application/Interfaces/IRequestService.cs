@@ -14,3 +14,4 @@ public interface IRequestService
     Task<MediaDto> AddMediaAsync(Guid id, string fileName, string contentType, Stream content, CancellationToken cancellationToken = default);
     Task AddClarificationAsync(Guid id, ClarificationRequest request, CancellationToken cancellationToken = default);
     Task<IReadOnlyList<RequestHistoryDto>> HistoryAsync(Guid id, CancellationToken cancellationToken = default);
+}
