@@ -112,31 +112,6 @@ public class CustomerRequestApiTests(FixFlowApiFixture fixture)
         Assert.False(string.IsNullOrWhiteSpace(media.StorageKey));
     }
 
-<<<<<<< HEAD
-=======
-    [Fact]
-    public async Task Cancel_NotifiesInvitedAndQuotingTechnicians()
-    {
-        var scene = await MarketplaceScenario.CreateAsync(fixture);
-        using var customer = fixture.CreateClient(scene.Customer.AccessToken);
-        var response = await customer.PostAsync($"/api/requests/{scene.RequestId}/cancel", null);
-        Assert.True(response.IsSuccessStatusCode, await response.Content.ReadAsStringAsync());
-        var cancelled = await response.Content.ReadFromJsonAsync<RequestDto>(FixFlowApiFixture.Json);
-        Assert.Equal("CANCELLED", cancelled!.Status);
-
-        using var technician = fixture.CreateClient(scene.Technician.AccessToken);
-        var notes = await technician.GetFromJsonAsync<List<FixFlow.Application.DTOs.Notifications.NotificationDto>>(
-            "/api/notifications",
-            FixFlowApiFixture.Json);
-        Assert.Contains(notes!, item => item.Message.Contains("cancelled by the customer", StringComparison.OrdinalIgnoreCase));
-
-        var invites = await technician.GetFromJsonAsync<List<FixFlow.Application.DTOs.Quotes.InvitationDto>>(
-            "/api/invitations",
-            FixFlowApiFixture.Json);
-        Assert.DoesNotContain(invites!, item => item.RequestId == scene.RequestId);
-    }
-
->>>>>>> aced347 (after final corrections from all members)
     private static async Task<RequestDto> CreateDraftAsync(HttpClient client, string description)
     {
         var response = await client.PostAsJsonAsync("/api/requests", NewRequest(description), FixFlowApiFixture.Json);
@@ -151,14 +126,6 @@ public class CustomerRequestApiTests(FixFlowApiFixture fixture)
         serviceArea = "Colombo",
         address = "12 Flower Road, Colombo",
         latitude = 6.9271,
-<<<<<<< HEAD
         longitude = 79.8612
     };
 }
-=======
-        longitude = 79.8612,
-        preferredStart = DateTimeOffset.UtcNow.AddDays(1),
-        preferredEnd = DateTimeOffset.UtcNow.AddDays(1).AddHours(2)
-    };
-}
->>>>>>> aced347 (after final corrections from all members)

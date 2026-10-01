@@ -15,10 +15,6 @@ public class AuthService(
     IRepository<User> users,
     IRepository<RefreshToken> refreshTokens,
     IRepository<TechnicianProfile> technicians,
-<<<<<<< HEAD
-=======
-    IRepository<TechnicianProfileImage> profileImages,
->>>>>>> aced347 (after final corrections from all members)
     IRepository<TechnicianCategoryApplication> applications,
     IRepository<TechnicianDocument> documents,
     IRepository<ServiceCategory> categories,
@@ -48,11 +44,7 @@ public class AuthService(
             Email = email,
             PasswordHash = passwordHasher.Hash(request.Password),
             DisplayName = request.DisplayName.Trim(),
-<<<<<<< HEAD
-            Phone = string.IsNullOrWhiteSpace(request.Phone) ? null : request.Phone.Trim(),
-=======
             Phone = InputRules.NormalizePhone(request.Phone),
->>>>>>> aced347 (after final corrections from all members)
             Role = role,
             IsActive = role != UserRole.Technician
         };
@@ -89,21 +81,9 @@ public class AuthService(
                 Address = request.Address?.Trim()
             };
             await technicians.AddAsync(profile, cancellationToken);
-<<<<<<< HEAD
             var photoKey = await StoreImageAsync($"profiles/{profile.Id}", profilePhoto, cancellationToken);
             profile.ProfilePhotoStorageKey = photoKey;
             profile.ProfilePhotoMimeType = profilePhoto.ContentType;
-=======
-            var (photoKey, photoBytes) = await StoreImageAsync($"profiles/{profile.Id}", profilePhoto, cancellationToken);
-            profile.ProfilePhotoStorageKey = photoKey;
-            profile.ProfilePhotoMimeType = profilePhoto.ContentType;
-            await profileImages.AddAsync(new TechnicianProfileImage
-            {
-                TechnicianId = profile.Id,
-                Content = photoBytes,
-                MimeType = profilePhoto.ContentType
-            }, cancellationToken);
->>>>>>> aced347 (after final corrections from all members)
             var application = new TechnicianCategoryApplication
             {
                 TechnicianId = profile.Id,
@@ -226,11 +206,7 @@ public class AuthService(
         var user = await users.GetByIdAsync(currentUser.UserId, cancellationToken)
             ?? throw new NotFoundException("User not found.");
         user.DisplayName = request.DisplayName.Trim();
-<<<<<<< HEAD
-        user.Phone = string.IsNullOrWhiteSpace(request.Phone) ? null : request.Phone.Trim();
-=======
         user.Phone = InputRules.NormalizePhone(request.Phone);
->>>>>>> aced347 (after final corrections from all members)
         await unitOfWork.SaveChangesAsync(cancellationToken);
         return await GetMeAsync(cancellationToken);
     }
@@ -277,33 +253,13 @@ public class AuthService(
         };
     }
 
-<<<<<<< HEAD
     private async Task<string> StoreImageAsync(string folder, RegistrationFile file, CancellationToken cancellationToken)
-=======
-    private async Task<(string Key, byte[] Bytes)> StoreImageAsync(string folder, RegistrationFile file, CancellationToken cancellationToken)
->>>>>>> aced347 (after final corrections from all members)
     {
         await using var buffer = new MemoryStream();
         await file.Content.CopyToAsync(buffer, cancellationToken);
         UploadRules.EnsureImage(file.ContentType, buffer.Length);
-<<<<<<< HEAD
         buffer.Position = 0;
         return await files.SaveAsync(folder, file.FileName, buffer, cancellationToken);
-=======
-        var bytes = buffer.ToArray();
-        var key = $"{Guid.NewGuid():N}_{Path.GetFileName(file.FileName)}";
-        try
-        {
-            buffer.Position = 0;
-            key = await files.SaveAsync(folder, file.FileName, buffer, cancellationToken);
-        }
-        catch (IOException)
-        {
-            // The database copy is the copy that survives a deploy.
-        }
-
-        return (key, bytes);
->>>>>>> aced347 (after final corrections from all members)
     }
 
     private async Task StoreDocumentAsync(
@@ -351,8 +307,4 @@ public class AuthService(
 
         return parsed;
     }
-<<<<<<< HEAD
 }
-=======
-}
->>>>>>> aced347 (after final corrections from all members)

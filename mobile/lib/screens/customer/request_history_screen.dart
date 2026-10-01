@@ -41,11 +41,7 @@ class RequestHistoryScreen extends ConsumerWidget {
                   title: Text(item.categoryName ?? 'Service request'),
                   subtitle: Text(
                     item.status == 'CLARIFICATION_REQUIRED'
-<<<<<<< HEAD
                         ? '${item.description}\nNeeds your answer — tap here to reply'
-=======
-                        ? '${item.description}\nHow many need to be changed? Tap to answer, then the request is submitted.'
->>>>>>> aced347 (after final corrections from all members)
                         : '${item.description}\n${formatDate(item.createdAt)}',
                   ),
                   isThreeLine: true,
@@ -59,8 +55,4 @@ class RequestHistoryScreen extends ConsumerWidget {
       ),
     );
   }
-<<<<<<< HEAD
 }
-=======
-}
->>>>>>> aced347 (after final corrections from all members)

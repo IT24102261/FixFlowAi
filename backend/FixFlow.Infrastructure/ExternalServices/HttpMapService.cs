@@ -238,8 +238,4 @@ public sealed class HttpMapService(
     }
 
     private static bool IsFinite(double value) => !double.IsNaN(value) && !double.IsInfinity(value);
-<<<<<<< HEAD
 }
-=======
-}
->>>>>>> aced347 (after final corrections from all members)

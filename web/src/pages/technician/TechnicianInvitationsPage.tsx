@@ -46,11 +46,7 @@ export function TechnicianInvitationsPage() {
       {loading ? <TableSkeleton /> : null}
       {error ? <ErrorState message={error} /> : null}
       {!loading && !error && rows.length === 0 ? (
-<<<<<<< HEAD
         <EmptyState title="No invitations" description="You will see jobs here after a matching request is submitted." />
-=======
-        <EmptyState title="No invitations" description="Open jobs appear here. If a customer cancels, the invitation leaves this list and you get a notification." />
->>>>>>> aced347 (after final corrections from all members)
       ) : null}
       <div className="grid gap-4">
         {rows.map((item) => (
@@ -62,13 +58,6 @@ export function TechnicianInvitationsPage() {
               <div>
                 <p className="text-lg font-semibold text-slate-900">{item.categoryName || 'Service request'}</p>
                 <p className="mt-1 text-sm leading-6 text-slate-600">{item.description}</p>
-<<<<<<< HEAD
-=======
-                <p className="mt-2 text-sm font-medium text-[#171717]">
-                  Preferred appointment:{' '}
-                  {item.preferredStart ? formatDate(item.preferredStart) : 'Not set'}
-                </p>
->>>>>>> aced347 (after final corrections from all members)
                 <p className="mt-3 inline-flex items-center gap-1.5 text-xs text-slate-400">
                   <MapPin size={13} />
                   {item.serviceArea || 'approximate'} · {formatDate(item.sentAt)}
@@ -103,8 +92,4 @@ export function TechnicianInvitationsPage() {
       </div>
     </div>
   )
-<<<<<<< HEAD
 }
-=======
-}
->>>>>>> aced347 (after final corrections from all members)

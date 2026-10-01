@@ -41,8 +41,4 @@ public sealed class JaffnaRequestSeeder(FixFlowDbContext db, ILogger<JaffnaReque
             invites.Count);
         return invites.Count;
     }
-<<<<<<< HEAD
 }
-=======
-}
->>>>>>> aced347 (after final corrections from all members)

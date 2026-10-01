@@ -115,8 +115,4 @@ public class MapServiceTests
             return new HttpResponseMessage(HttpStatusCode.OK);
         }
     }
-<<<<<<< HEAD
 }
-=======
-}
->>>>>>> aced347 (after final corrections from all members)

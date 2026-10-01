@@ -20,12 +20,8 @@ public class AuthApiTests(FixFlowApiFixture fixture)
             email,
             password = FixFlowApiFixture.Password,
             displayName = "Valid Customer",
-<<<<<<< HEAD
-            role = "CUSTOMER"
-=======
             role = "CUSTOMER",
             phone = "0771234567"
->>>>>>> aced347 (after final corrections from all members)
         }, FixFlowApiFixture.Json);
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -240,8 +236,4 @@ public class AuthApiTests(FixFlowApiFixture fixture)
         var fresh = await fixture.LoginAsync(customer.Email, "NewPassword1!");
         Assert.Equal(customer.UserId, fresh.UserId);
     }
-<<<<<<< HEAD
 }
-=======
-}
->>>>>>> aced347 (after final corrections from all members)

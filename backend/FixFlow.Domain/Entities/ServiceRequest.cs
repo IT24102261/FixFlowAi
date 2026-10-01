@@ -27,8 +27,4 @@ public class ServiceRequest
     public ICollection<Quotation> Quotations { get; set; } = [];
     public ICollection<RequestStatusHistory> History { get; set; } = [];
     public ICollection<RequestClarification> Clarifications { get; set; } = [];
-<<<<<<< HEAD
 }
-=======
-}
->>>>>>> aced347 (after final corrections from all members)

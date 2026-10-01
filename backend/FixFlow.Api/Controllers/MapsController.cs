@@ -1,22 +1,14 @@
-<<<<<<< HEAD
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using FixFlow.Application.Common;
 using FixFlow.Application.DTOs.Requests;
 using FixFlow.Application.Interfaces;
 using FluentValidation;
-=======
-using FixFlow.Application.DTOs.Maps;
-using FixFlow.Application.Interfaces;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
->>>>>>> aced347 (after final corrections from all members)
 
 namespace FixFlow.Api.Controllers;
 
 [ApiController]
 [Authorize]
-<<<<<<< HEAD
 [Route("api/requests")]
 public class RequestsController(
 	IRequestService requests,
@@ -90,16 +82,3 @@ public class RequestsController(
 	public async Task<IActionResult> Quotes(Guid requestId, CancellationToken cancellationToken) =>
 		Ok(await marketplace.ListQuotesAsync(requestId, cancellationToken));
 }
-=======
-[Route("api/maps")]
-public class MapsController(IMapService maps) : ControllerBase
-{
-    [HttpPost("geocode")]
-    public async Task<IActionResult> Geocode(GeocodeAddressRequest request, CancellationToken cancellationToken) =>
-        Ok(await maps.GeocodeAddressAsync(request.Address, cancellationToken));
-
-    [HttpPost("reverse")]
-    public async Task<IActionResult> Reverse(ReverseGeocodeRequest request, CancellationToken cancellationToken) =>
-        Ok(await maps.ReverseGeocodeAsync(request.Latitude, request.Longitude, cancellationToken));
-}
->>>>>>> aced347 (after final corrections from all members)

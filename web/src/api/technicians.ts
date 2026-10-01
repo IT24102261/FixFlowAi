@@ -46,18 +46,9 @@ export const techniciansApi = {
     apiClient.post<TechnicianProfileDto>(`/api/admin/technicians/${id}/suspend`, { notes }).then((r) => r.data),
   reactivate: (id: string, notes?: string) =>
     apiClient.post<TechnicianProfileDto>(`/api/admin/technicians/${id}/reactivate`, { notes }).then((r) => r.data),
-<<<<<<< HEAD
-}
-=======
   setProfilePhoto: (id: string, file: File) => {
     const data = new FormData()
     data.append('file', file)
     return apiClient.post<TechnicianProfileDto>(`/api/admin/technicians/${id}/photo`, data).then((r) => r.data)
   },
-  updateOwnPhoto: (file: File) => {
-    const data = new FormData()
-    data.append('file', file)
-    return apiClient.post<TechnicianProfileDto>('/api/technicians/profile/photo', data).then((r) => r.data)
-  },
 }
->>>>>>> aced347 (after final corrections from all members)

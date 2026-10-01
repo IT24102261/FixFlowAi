@@ -14,8 +14,4 @@ public class RequestStatusHistory
 
     public ServiceRequest Request { get; set; } = null!;
     public User Actor { get; set; } = null!;
-<<<<<<< HEAD
 }
-=======
-}
->>>>>>> aced347 (after final corrections from all members)

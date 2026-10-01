@@ -31,11 +31,4 @@ public static class RequestStateMachine
 
     public static bool IsEditable(ServiceRequestStatus status) =>
         status is ServiceRequestStatus.Draft or ServiceRequestStatus.ClarificationRequired;
-<<<<<<< HEAD
 }
-=======
-
-    public static bool CanCustomerCancel(ServiceRequestStatus status) =>
-        status is not (ServiceRequestStatus.Booked or ServiceRequestStatus.Completed or ServiceRequestStatus.Cancelled or ServiceRequestStatus.Failed);
-}
->>>>>>> aced347 (after final corrections from all members)

@@ -69,8 +69,4 @@ public class MeResponse
     public bool IsActive { get; set; }
     public Guid? TechnicianProfileId { get; set; }
     public IReadOnlyList<string> ApprovedCategories { get; set; } = [];
-<<<<<<< HEAD
 }
-=======
-}
->>>>>>> aced347 (after final corrections from all members)
