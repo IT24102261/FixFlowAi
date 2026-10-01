@@ -26,9 +26,18 @@ public class RequestServiceTests
             new InMemoryRepository<RequestClarification>(),
             new InMemoryRepository<RequestStatusHistory>(),
             new InMemoryRepository<TechnicianProfile>(),
+<<<<<<< HEAD
             orchestrator.Object,
             maps.Object,
             files.Object,
+=======
+            new InMemoryRepository<RequestInvitation>(),
+            new InMemoryRepository<Quotation>(),
+            orchestrator.Object,
+            maps.Object,
+            files.Object,
+            new Mock<INotificationService>().Object,
+>>>>>>> aced347 (after final corrections from all members)
             new InMemoryUnitOfWork(),
             user,
             NullLogger<RequestService>.Instance);
@@ -61,9 +70,18 @@ public class RequestServiceTests
             new InMemoryRepository<RequestClarification>(),
             new InMemoryRepository<RequestStatusHistory>(),
             new InMemoryRepository<TechnicianProfile>(),
+<<<<<<< HEAD
             new Mock<IAgentOrchestrator>().Object,
             maps.Object,
             new Mock<IFileStorage>().Object,
+=======
+            new InMemoryRepository<RequestInvitation>(),
+            new InMemoryRepository<Quotation>(),
+            new Mock<IAgentOrchestrator>().Object,
+            maps.Object,
+            new Mock<IFileStorage>().Object,
+            new Mock<INotificationService>().Object,
+>>>>>>> aced347 (after final corrections from all members)
             new InMemoryUnitOfWork(),
             user,
             NullLogger<RequestService>.Instance);
@@ -78,4 +96,8 @@ public class RequestServiceTests
         Assert.Equal(79.86, created.Longitude);
         maps.Verify(x => x.GeocodeAddressAsync("12 Flower Road", It.IsAny<CancellationToken>()), Times.Once);
     }
+<<<<<<< HEAD
 }
+=======
+}
+>>>>>>> aced347 (after final corrections from all members)

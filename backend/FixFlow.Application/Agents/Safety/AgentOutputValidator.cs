@@ -91,4 +91,8 @@ public static class AgentOutputValidator
 
         return output;
     }
+<<<<<<< HEAD
 }
+=======
+}
+>>>>>>> aced347 (after final corrections from all members)

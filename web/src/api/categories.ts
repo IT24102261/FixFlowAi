@@ -11,4 +11,8 @@ export const categoriesApi = {
   remove: (id: string) => apiClient.delete(`/api/categories/${id}`),
   replaceRequirements: (id: string, requirements: { evidenceType: string; isRequired: boolean; validationMethod: string }[]) =>
     apiClient.put(`/api/categories/${id}/requirements`, requirements).then((r) => r.data),
+<<<<<<< HEAD
 }
+=======
+}
+>>>>>>> aced347 (after final corrections from all members)

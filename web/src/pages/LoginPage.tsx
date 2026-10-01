@@ -1,12 +1,20 @@
 import { useState, type FormEvent } from 'react'
 import { Link, Navigate, useLocation, useNavigate } from 'react-router-dom'
+<<<<<<< HEAD
 import { House } from 'lucide-react'
+=======
+import { Eye, EyeOff, House } from 'lucide-react'
+>>>>>>> aced347 (after final corrections from all members)
 import { FormField, TextInput } from '../components/ui/FormField'
 import { Button } from '../components/ui/Button'
 import { ErrorState } from '../components/ui/ErrorState'
 import { useAuth } from '../hooks/useAuth'
 import { pathForRole, postLoginPath } from '../store/authStore'
 import { getApiError } from '../utils/errors'
+<<<<<<< HEAD
+=======
+import { isValidEmail } from '../utils/validation'
+>>>>>>> aced347 (after final corrections from all members)
 import { useToastStore } from '../store/toastStore'
 
 export function LoginPage() {
@@ -17,6 +25,10 @@ export function LoginPage() {
   const push = useToastStore((state) => state.push)
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+<<<<<<< HEAD
+=======
+  const [showPassword, setShowPassword] = useState(false)
+>>>>>>> aced347 (after final corrections from all members)
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [formError, setFormError] = useState('')
   const [busy, setBusy] = useState(false)
@@ -28,7 +40,11 @@ export function LoginPage() {
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
     const nextErrors: Record<string, string> = {}
+<<<<<<< HEAD
     if (!email.includes('@')) nextErrors.email = 'Enter a valid email.'
+=======
+    if (!isValidEmail(email)) nextErrors.email = 'Enter a valid email with one @.'
+>>>>>>> aced347 (after final corrections from all members)
     if (!password) nextErrors.password = 'Password is required.'
     setErrors(nextErrors)
     if (Object.keys(nextErrors).length) return
@@ -67,12 +83,32 @@ export function LoginPage() {
             <TextInput type="email" value={email} autoComplete="email" onChange={(event) => setEmail(event.target.value)} />
           </FormField>
           <FormField label="Password" error={errors.password}>
+<<<<<<< HEAD
             <TextInput
               type="password"
               value={password}
               autoComplete="current-password"
               onChange={(event) => setPassword(event.target.value)}
             />
+=======
+            <div className="relative">
+              <TextInput
+                type={showPassword ? 'text' : 'password'}
+                value={password}
+                autoComplete="current-password"
+                className="pr-11"
+                onChange={(event) => setPassword(event.target.value)}
+              />
+              <button
+                type="button"
+                className="absolute top-1/2 right-2 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-lg text-[#6d6a64] hover:bg-[#f4efe6] hover:text-[#171717]"
+                aria-label={showPassword ? 'Hide password' : 'Show password'}
+                onClick={() => setShowPassword((current) => !current)}
+              >
+                {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+              </button>
+            </div>
+>>>>>>> aced347 (after final corrections from all members)
           </FormField>
           <Button type="submit" disabled={busy} className="w-full">
             {busy ? 'Signing in…' : 'Sign in'}
@@ -87,4 +123,8 @@ export function LoginPage() {
       </div>
     </section>
   )
+<<<<<<< HEAD
 }
+=======
+}
+>>>>>>> aced347 (after final corrections from all members)

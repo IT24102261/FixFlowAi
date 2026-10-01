@@ -116,4 +116,8 @@ public static class AgentJson
         DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
         WriteIndented = false
     };
+<<<<<<< HEAD
 }
+=======
+}
+>>>>>>> aced347 (after final corrections from all members)

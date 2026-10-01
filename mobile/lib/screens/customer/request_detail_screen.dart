@@ -37,6 +37,15 @@ class _RequestDetailScreenState extends ConsumerState<RequestDetailScreen> {
     super.dispose();
   }
 
+<<<<<<< HEAD
+=======
+  bool get _canCancel {
+    final status = _request?.status;
+    return status != null &&
+        !const {'BOOKED', 'COMPLETED', 'CANCELLED', 'FAILED'}.contains(status);
+  }
+
+>>>>>>> aced347 (after final corrections from all members)
   Future<void> _load() async {
     setState(() {
       _loading = true;
@@ -57,9 +66,43 @@ class _RequestDetailScreenState extends ConsumerState<RequestDetailScreen> {
     }
   }
 
+<<<<<<< HEAD
   Future<void> _sendClarification() async {
     if (_clarification.text.trim().isEmpty) {
       setState(() => _error = 'Type your answer first, then tap Submit clarification.');
+=======
+  Future<void> _cancel() async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Cancel this request?'),
+        content: const Text(
+          'Technicians who received an invitation or sent a quotation will be told you cancelled this request.',
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Keep request')),
+          FilledButton(onPressed: () => Navigator.pop(context, true), child: const Text('Cancel request')),
+        ],
+      ),
+    );
+    if (confirmed != true) return;
+    try {
+      await ref.read(apiProvider).cancelRequest(widget.requestId);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Request cancelled. Technicians were notified.')),
+        );
+      }
+      await _load();
+    } catch (error) {
+      setState(() => _error = error.toString());
+    }
+  }
+
+  Future<void> _sendClarification() async {
+    if (_clarification.text.trim().isEmpty) {
+      setState(() => _error = 'Enter how many need to be changed, then submit the request.');
+>>>>>>> aced347 (after final corrections from all members)
       return;
     }
     setState(() => _error = null);
@@ -68,7 +111,11 @@ class _RequestDetailScreenState extends ConsumerState<RequestDetailScreen> {
       _clarification.clear();
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
+<<<<<<< HEAD
           const SnackBar(content: Text('Answer sent. Matching will continue.')),
+=======
+          const SnackBar(content: Text('Answer saved. The request is now submitted to technicians.')),
+>>>>>>> aced347 (after final corrections from all members)
         );
       }
       await _load();
@@ -121,10 +168,21 @@ class _RequestDetailScreenState extends ConsumerState<RequestDetailScreen> {
                         if (request.status == 'CLARIFICATION_REQUIRED') ...[
                           const SizedBox(height: 12),
                           SectionCard(
+<<<<<<< HEAD
                             title: 'We need a little more information',
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
+=======
+                            title: 'How many need to be changed?',
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const Text(
+                                  'Technicians are invited only after you answer. The request is not submitted until then.',
+                                ),
+                                const SizedBox(height: 8),
+>>>>>>> aced347 (after final corrections from all members)
                                 Text(
                                   _history
                                           .where((item) => item.toStatus == 'CLARIFICATION_REQUIRED')
@@ -132,11 +190,16 @@ class _RequestDetailScreenState extends ConsumerState<RequestDetailScreen> {
                                           .whereType<String>()
                                           .where((note) => note.trim().isNotEmpty)
                                           .lastOrNull ??
+<<<<<<< HEAD
                                       'Please add more detail so matching can continue.',
+=======
+                                      'How many need to be changed?',
+>>>>>>> aced347 (after final corrections from all members)
                                 ),
                                 const SizedBox(height: 12),
                                 TextField(
                                   controller: _clarification,
+<<<<<<< HEAD
                                   decoration: const InputDecoration(
                                     labelText: 'Your answer',
                                     hintText: 'Example: 2 plug switches need replacement',
@@ -145,17 +208,49 @@ class _RequestDetailScreenState extends ConsumerState<RequestDetailScreen> {
                                 ),
                                 const SizedBox(height: 8),
                                 FilledButton(onPressed: _sendClarification, child: const Text('Submit clarification')),
+=======
+                                  keyboardType: TextInputType.number,
+                                  decoration: const InputDecoration(
+                                    labelText: 'How many',
+                                    hintText: 'Example: 2',
+                                  ),
+                                ),
+                                const SizedBox(height: 8),
+                                FilledButton(onPressed: _sendClarification, child: const Text('Submit request')),
+>>>>>>> aced347 (after final corrections from all members)
                               ],
                             ),
                           ),
                         ],
                         const SizedBox(height: 12),
+<<<<<<< HEAD
                         FilledButton(
                           onPressed: () => Navigator.pushNamed(context, AppRoutes.quotes, arguments: request),
                           child: const Text('Compare quotations'),
+=======
+                        if (_canCancel)
+                          OutlinedButton(
+                            onPressed: _cancel,
+                            child: const Text('Cancel request'),
+                          ),
+                        if (_canCancel) const SizedBox(height: 8),
+                        FilledButton(
+                          onPressed: request.status == 'CANCELLED' || request.status == 'CLARIFICATION_REQUIRED'
+                              ? null
+                              : () => Navigator.pushNamed(context, AppRoutes.quotes, arguments: request),
+                          child: Text(
+                            request.status == 'CLARIFICATION_REQUIRED'
+                                ? 'Answer how many before quotations'
+                                : 'Compare quotations',
+                          ),
+>>>>>>> aced347 (after final corrections from all members)
                         ),
                       ],
                     ),
     );
   }
+<<<<<<< HEAD
 }
+=======
+}
+>>>>>>> aced347 (after final corrections from all members)

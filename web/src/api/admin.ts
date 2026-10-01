@@ -32,4 +32,8 @@ export const adminApi = {
     apiClient.post<AdminUserDto>('/api/admin/users', payload).then((r) => r.data),
   setUserActive: (id: string, isActive: boolean) =>
     apiClient.patch<AdminUserDto>(`/api/admin/users/${id}/status`, { isActive }).then((r) => r.data),
+<<<<<<< HEAD
 }
+=======
+}
+>>>>>>> aced347 (after final corrections from all members)

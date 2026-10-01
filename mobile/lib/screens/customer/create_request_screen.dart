@@ -122,8 +122,18 @@ class _CreateRequestScreenState extends ConsumerState<CreateRequestScreen> {
       if (_image != null) {
         await ref.read(apiProvider).addMedia(created.id, _image!.path, _image!.name);
       }
+<<<<<<< HEAD
       await ref.read(apiProvider).submitRequest(created.id);
       if (!mounted) return;
+=======
+      final submitted = await ref.read(apiProvider).submitRequest(created.id);
+      if (!mounted) return;
+      if (submitted.status == 'CLARIFICATION_REQUIRED') {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('How many need to be changed? Answer that before technicians are invited.')),
+        );
+      }
+>>>>>>> aced347 (after final corrections from all members)
       Navigator.pushReplacementNamed(context, AppRoutes.requestDetail, arguments: created.id);
     } catch (error) {
       setState(() => _error = error.toString());
@@ -226,4 +236,8 @@ class _CreateRequestScreenState extends ConsumerState<CreateRequestScreen> {
       ),
     );
   }
+<<<<<<< HEAD
 }
+=======
+}
+>>>>>>> aced347 (after final corrections from all members)

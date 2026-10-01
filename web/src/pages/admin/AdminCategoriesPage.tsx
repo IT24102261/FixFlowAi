@@ -243,4 +243,8 @@ export function AdminCategoriesPage() {
       />
     </div>
   )
+<<<<<<< HEAD
 }
+=======
+}
+>>>>>>> aced347 (after final corrections from all members)

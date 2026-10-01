@@ -7,6 +7,10 @@ import { FilterPanel, SelectFilter } from '../../components/ui/FilterPanel'
 import { PageHeader } from '../../components/ui/PageHeader'
 import { SearchBar } from '../../components/ui/SearchBar'
 import { StatusBadge } from '../../components/ui/StatusBadge'
+<<<<<<< HEAD
+=======
+import { TechnicianAvatar } from '../../components/ui/TechnicianAvatar'
+>>>>>>> aced347 (after final corrections from all members)
 import { usePagedQuery } from '../../hooks/usePagedQuery'
 import type { TechnicianApplicationDto } from '../../types/api'
 import { formatDate, shortId } from '../../utils/format'
@@ -33,11 +37,24 @@ export function AdminVerificationsPage() {
 
   const columns = useMemo<Column<TechnicianApplicationDto>[]>(
     () => [
+<<<<<<< HEAD
       { key: 'technicianId', header: 'Technician', sortable: true, render: (row) => shortId(row.technicianId) },
       { key: 'categoryName', header: 'Category', sortable: true, render: (row) => row.categoryName || '—' },
       { key: 'submittedAt', header: 'Submitted Date', sortable: true, render: (row) => formatDate(row.submittedAt) },
       { key: 'status', header: 'Status', render: (row) => <StatusBadge status={row.status} /> },
       { key: 'evidence', header: 'Evidence Count', render: () => '—' },
+=======
+      { key: 'technicianId', header: 'Technician', sortable: true, render: (row) => (
+        <span className="flex items-center gap-2">
+          <TechnicianAvatar name={row.technicianDisplayName} photoUrl={row.profilePhotoUrl} size={32} />
+          <span>{row.technicianDisplayName || shortId(row.technicianId)}</span>
+        </span>
+      ) },
+      { key: 'categoryName', header: 'Category', sortable: true, render: (row) => row.categoryName || '—' },
+      { key: 'submittedAt', header: 'Submitted Date', sortable: true, render: (row) => formatDate(row.submittedAt) },
+      { key: 'status', header: 'Status', render: (row) => <StatusBadge status={row.status} /> },
+      { key: 'evidence', header: 'Evidence', render: (row) => String(row.evidenceCount ?? row.documents?.length ?? 0) },
+>>>>>>> aced347 (after final corrections from all members)
       {
         key: 'action',
         header: 'Action',
@@ -90,4 +107,8 @@ export function AdminVerificationsPage() {
       />
     </div>
   )
+<<<<<<< HEAD
 }
+=======
+}
+>>>>>>> aced347 (after final corrections from all members)

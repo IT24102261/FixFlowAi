@@ -53,4 +53,8 @@ public class MediaDto
     public string StorageKey { get; set; } = string.Empty;
     public string MimeType { get; set; } = string.Empty;
     public DateTimeOffset UploadedAt { get; set; }
+<<<<<<< HEAD
 }
+=======
+}
+>>>>>>> aced347 (after final corrections from all members)

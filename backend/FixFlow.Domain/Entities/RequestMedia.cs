@@ -9,4 +9,8 @@ public class RequestMedia
     public DateTimeOffset UploadedAt { get; set; } = DateTimeOffset.UtcNow;
 
     public ServiceRequest Request { get; set; } = null!;
+<<<<<<< HEAD
 }
+=======
+}
+>>>>>>> aced347 (after final corrections from all members)

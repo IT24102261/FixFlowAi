@@ -57,4 +57,3 @@ class BookingsScreen extends ConsumerWidget {
     );
   }
 }
-

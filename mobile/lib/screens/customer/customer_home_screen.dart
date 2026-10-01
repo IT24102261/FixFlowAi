@@ -108,7 +108,16 @@ class _DashboardLists extends ConsumerWidget {
                                     children: [
                                       Text(item.categoryName ?? item.description, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontWeight: FontWeight.w600, color: AppColors.ink)),
                                       const SizedBox(height: 4),
+<<<<<<< HEAD
                                       Text('${item.serviceArea ?? 'Area not set'} · ${formatDate(item.createdAt)}', style: const TextStyle(fontSize: 12, color: AppColors.faint)),
+=======
+                                      Text(
+                                        item.status == 'CLARIFICATION_REQUIRED'
+                                            ? 'How many need to be changed? Tap to answer.'
+                                            : '${item.serviceArea ?? 'Area not set'} · ${formatDate(item.createdAt)}',
+                                        style: const TextStyle(fontSize: 12, color: AppColors.faint),
+                                      ),
+>>>>>>> aced347 (after final corrections from all members)
                                     ],
                                   ),
                                 ),
@@ -157,4 +166,8 @@ class _DashboardLists extends ConsumerWidget {
       },
     );
   }
+<<<<<<< HEAD
 }
+=======
+}
+>>>>>>> aced347 (after final corrections from all members)

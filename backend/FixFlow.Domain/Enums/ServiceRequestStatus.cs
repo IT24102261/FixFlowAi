@@ -13,4 +13,8 @@ public enum ServiceRequestStatus
     Completed,
     Cancelled,
     Failed
+<<<<<<< HEAD
 }
+=======
+}
+>>>>>>> aced347 (after final corrections from all members)

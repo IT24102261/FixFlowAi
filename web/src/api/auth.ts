@@ -29,4 +29,8 @@ export const authApi = {
     apiClient.put<MeResponse>('/api/me', payload).then((r) => r.data),
   changePassword: (payload: { currentPassword: string; newPassword: string }) =>
     apiClient.post('/api/me/password', payload),
+<<<<<<< HEAD
 }
+=======
+}
+>>>>>>> aced347 (after final corrections from all members)

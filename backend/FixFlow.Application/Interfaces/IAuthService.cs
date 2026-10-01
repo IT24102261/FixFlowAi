@@ -16,4 +16,8 @@ public interface IAuthService
     Task<MeResponse> GetMeAsync(CancellationToken cancellationToken = default);
     Task<MeResponse> UpdateProfileAsync(UpdateProfileRequest request, CancellationToken cancellationToken = default);
     Task ChangePasswordAsync(ChangePasswordRequest request, CancellationToken cancellationToken = default);
+<<<<<<< HEAD
 }
+=======
+}
+>>>>>>> aced347 (after final corrections from all members)

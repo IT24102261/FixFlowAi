@@ -93,4 +93,8 @@ public class MeController(IAuthService auth, IValidator<UpdateProfileRequest> pr
         await auth.ChangePasswordAsync(request, cancellationToken);
         return NoContent();
     }
+<<<<<<< HEAD
 }
+=======
+}
+>>>>>>> aced347 (after final corrections from all members)

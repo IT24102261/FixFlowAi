@@ -10,4 +10,8 @@ public class RequestClarification
 
     public ServiceRequest Request { get; set; } = null!;
     public User Author { get; set; } = null!;
+<<<<<<< HEAD
 }
+=======
+}
+>>>>>>> aced347 (after final corrections from all members)

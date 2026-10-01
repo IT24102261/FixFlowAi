@@ -53,6 +53,14 @@ public class RequestsController(
     public async Task<IActionResult> Submit(Guid id, CancellationToken cancellationToken) =>
         Ok(await requests.SubmitAsync(id, cancellationToken));
 
+<<<<<<< HEAD
+=======
+    [HttpPost("{id:guid}/cancel")]
+    [Authorize(Policy = "Customer")]
+    public async Task<IActionResult> Cancel(Guid id, CancellationToken cancellationToken) =>
+        Ok(await requests.CancelAsync(id, cancellationToken));
+
+>>>>>>> aced347 (after final corrections from all members)
     [HttpPost("{id:guid}/media")]
     [Authorize(Policy = "Customer")]
     public async Task<IActionResult> Media(Guid id, IFormFile file, CancellationToken cancellationToken)
@@ -81,4 +89,8 @@ public class RequestsController(
     [HttpGet("{requestId:guid}/quotes")]
     public async Task<IActionResult> Quotes(Guid requestId, CancellationToken cancellationToken) =>
         Ok(await marketplace.ListQuotesAsync(requestId, cancellationToken));
+<<<<<<< HEAD
 }
+=======
+}
+>>>>>>> aced347 (after final corrections from all members)
