@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+﻿import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { ArrowRight, Briefcase, ClipboardList, ScrollText, ShieldCheck, Star } from 'lucide-react'
 import { marketplaceApi } from '../../api/marketplace'
@@ -8,6 +8,7 @@ import { ErrorState } from '../../components/ui/ErrorState'
 import { CardSkeleton } from '../../components/ui/Skeleton'
 import { StatCard } from '../../components/ui/StatCard'
 import { StatusBadge } from '../../components/ui/StatusBadge'
+import { TechnicianAvatar } from '../../components/ui/TechnicianAvatar'
 import { WorkspaceBanner } from '../../components/ui/WorkspaceBanner'
 import { useAuth } from '../../hooks/useAuth'
 import type { BookingDto, InvitationDto, TechnicianApplicationDto, TechnicianProfileDto } from '../../types/api'
@@ -64,11 +65,21 @@ export function TechnicianDashboardPage() {
       ) : null}
       {error ? <ErrorState message={error} /> : null}
 
+      {profile ? (
+        <Link to="/technician/profile" className="flex items-center gap-4 rounded-2xl border border-black/8 bg-white p-4">
+          <TechnicianAvatar name={profile.displayName} photoUrl={profile.profilePhotoUrl} size={64} />
+          <span>
+            <span className="block text-sm font-medium text-[#171717]">{profile.displayName}</span>
+            <span className="block text-sm text-slate-500">Profile photo. Open your profile to change it.</span>
+          </span>
+        </Link>
+      ) : null}
+
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <StatCard label="Approved trades" value={approved} hint={approved ? 'You can quote in these categories' : 'Apply from Verification'} icon={ShieldCheck} />
         <StatCard label="Open invitations" value={openInvites.length} hint="Requests waiting for your quote" icon={ClipboardList} accent="navy" />
         <StatCard label="Jobs" value={jobCount} hint="Bookings assigned to you" icon={Briefcase} />
-        <StatCard label="Rating" value={profile ? Number(profile.averageRating).toFixed(1) : '—'} hint={`${profile?.reviewCount ?? 0} published reviews`} icon={Star} accent="cream" />
+        <StatCard label="Rating" value={profile ? Number(profile.averageRating).toFixed(1) : 'â€”'} hint={`${profile?.reviewCount ?? 0} published reviews`} icon={Star} accent="cream" />
       </div>
 
       <div className="grid gap-4 lg:grid-cols-3">
@@ -95,7 +106,7 @@ export function TechnicianDashboardPage() {
                 <ActivityRow
                   key={item.id}
                   title={item.categoryName || 'Service request'}
-                  meta={`${item.serviceArea || 'Area not set'} · ${formatDate(item.sentAt)}`}
+                  meta={`${item.serviceArea || 'Area not set'} Â· Preferred ${item.preferredStart ? formatDate(item.preferredStart) : 'time not set'}`}
                   badge={<StatusBadge status={item.status} />}
                 />
               ))}
@@ -120,7 +131,7 @@ export function TechnicianDashboardPage() {
                 <ActivityRow
                   key={item.id}
                   title={item.customerDisplayName || `Job ${shortId(item.id)}`}
-                  meta={`${item.categoryName || 'Service'} · ${formatBookingStatus(item.status)}`}
+                  meta={`${item.categoryName || 'Service'} Â· ${formatBookingStatus(item.status)}`}
                   badge={<StatusBadge status={item.status} label={formatBookingStatus(item.status)} />}
                 />
               ))}

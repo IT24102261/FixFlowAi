@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, type FormEvent } from 'react'
+﻿import { useEffect, useMemo, useState, type FormEvent } from 'react'
 import { adminApi } from '../../api/admin'
 import { categoriesApi } from '../../api/categories'
 import { Button } from '../../components/ui/Button'
@@ -92,9 +92,9 @@ export function AdminUsersPage() {
       { key: 'displayName', header: 'Name', render: (row) => row.displayName },
       { key: 'email', header: 'Email', render: (row) => row.email },
       { key: 'role', header: 'Role', render: (row) => <StatusBadge status={row.role} /> },
-      { key: 'phone', header: 'Phone', render: (row) => row.phone || '—' },
-      { key: 'address', header: 'Address', render: (row) => row.address || '—' },
-      { key: 'requestedCategory', header: 'Trade', render: (row) => row.requestedCategory || row.serviceArea || '—' },
+      { key: 'phone', header: 'Phone', render: (row) => row.phone || 'â€”' },
+      { key: 'address', header: 'Address', render: (row) => row.address || 'â€”' },
+      { key: 'requestedCategory', header: 'Trade', render: (row) => row.requestedCategory || row.serviceArea || 'â€”' },
       { key: 'loginStatus', header: 'Login', render: (row) => <StatusBadge status={row.loginStatus} /> },
       { key: 'createdAt', header: 'Created', render: (row) => formatDate(row.createdAt) },
       {

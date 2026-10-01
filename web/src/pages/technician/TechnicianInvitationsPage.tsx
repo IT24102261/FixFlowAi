@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+﻿import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { ArrowUpRight, MapPin } from 'lucide-react'
 import { marketplaceApi } from '../../api/marketplace'
@@ -46,7 +46,7 @@ export function TechnicianInvitationsPage() {
       {loading ? <TableSkeleton /> : null}
       {error ? <ErrorState message={error} /> : null}
       {!loading && !error && rows.length === 0 ? (
-        <EmptyState title="No invitations" description="You will see jobs here after a matching request is submitted." />
+        <EmptyState title="No invitations" description="Open jobs appear here. If a customer cancels, the invitation leaves this list and you get a notification." />
       ) : null}
       <div className="grid gap-4">
         {rows.map((item) => (
@@ -58,9 +58,13 @@ export function TechnicianInvitationsPage() {
               <div>
                 <p className="text-lg font-semibold text-slate-900">{item.categoryName || 'Service request'}</p>
                 <p className="mt-1 text-sm leading-6 text-slate-600">{item.description}</p>
+                <p className="mt-2 text-sm font-medium text-[#171717]">
+                  Preferred appointment:{' '}
+                  {item.preferredStart ? formatDate(item.preferredStart) : 'Not set'}
+                </p>
                 <p className="mt-3 inline-flex items-center gap-1.5 text-xs text-slate-400">
                   <MapPin size={13} />
-                  {item.serviceArea || 'approximate'} · {formatDate(item.sentAt)}
+                  {item.serviceArea || 'approximate'} Â· {formatDate(item.sentAt)}
                 </p>
               </div>
               <StatusBadge status={item.status} />

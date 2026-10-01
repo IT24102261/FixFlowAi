@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+﻿import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { techniciansApi } from '../../api/technicians'
 import { AuthenticatedMedia } from '../../components/ui/AuthenticatedMedia'
@@ -33,7 +33,7 @@ function DocumentCard({ document }: { document: DocumentDto }) {
         <StatusBadge status={document.reviewStatus} />
       </div>
       <AuthenticatedMedia src={document.url} alt={evidenceLabel(document.evidenceType)} mimeType={document.mimeType} />
-      <p className="mt-2 text-xs text-[#6d6a64]">{document.mimeType} · {formatDate(document.uploadedAt)}</p>
+      <p className="mt-2 text-xs text-[#6d6a64]">{document.mimeType} Â· {formatDate(document.uploadedAt)}</p>
     </article>
   )
 }
@@ -108,8 +108,8 @@ export function AdminVerificationDetailPage() {
             <TechnicianAvatar name={item.technicianDisplayName} photoUrl={item.profilePhotoUrl} size={72} />
             <div>
               <p className="text-lg font-semibold text-[#171717]">{item.technicianDisplayName || 'Technician'}</p>
-              <p className="text-sm text-[#6d6a64]">{item.technicianEmail || '—'}</p>
-              <p className="mt-1 text-sm text-[#6d6a64]">{item.categoryName || '—'} · submitted {formatDate(item.submittedAt)}</p>
+              <p className="text-sm text-[#6d6a64]">{item.technicianEmail || 'â€”'}</p>
+              <p className="mt-1 text-sm text-[#6d6a64]">{item.categoryName || 'â€”'} Â· submitted {formatDate(item.submittedAt)}</p>
             </div>
           </div>
         </section>

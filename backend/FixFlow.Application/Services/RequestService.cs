@@ -17,9 +17,12 @@ public class RequestService(
     IRepository<RequestClarification> clarifications,
     IRepository<RequestStatusHistory> history,
     IRepository<TechnicianProfile> technicians,
+    IRepository<RequestInvitation> invitations,
+    IRepository<Quotation> quotations,
     IAgentOrchestrator orchestrator,
     IMapService maps,
     IFileStorage files,
+    INotificationService notifications,
     IUnitOfWork unitOfWork,
     ICurrentUser currentUser,
     ILogger<RequestService> logger) : IRequestService
@@ -183,6 +186,64 @@ public class RequestService(
         return Map(entity, includeAddress: true);
     }
 
+    public async Task<RequestDto> CancelAsync(Guid id, CancellationToken cancellationToken = default)
+    {
+        var entity = await Load(id, cancellationToken);
+        EnsureOwner(entity);
+        if (entity.Status == ServiceRequestStatus.Cancelled)
+        {
+            return Map(entity, includeAddress: true);
+        }
+
+        if (!RequestStateMachine.CanCustomerCancel(entity.Status))
+        {
+            throw new ConflictException("This request cannot be cancelled after it is booked.");
+        }
+
+        var service = entity.Category?.Name;
+        var openInvitations = await invitations.Query()
+            .Include(x => x.Technician)
+            .Where(x => x.RequestId == id)
+            .ToListAsync(cancellationToken);
+        var openQuotes = await quotations.Query()
+            .Include(x => x.Technician)
+            .Where(x => x.RequestId == id)
+            .ToListAsync(cancellationToken);
+
+        foreach (var invitation in openInvitations)
+        {
+            if (invitation.Status is InvitationStatus.Sent or InvitationStatus.Accepted)
+            {
+                invitation.Status = InvitationStatus.Expired;
+            }
+        }
+
+        foreach (var quote in openQuotes)
+        {
+            if (quote.Status is QuotationStatus.Draft or QuotationStatus.Sent or QuotationStatus.Accepted)
+            {
+                quote.Status = QuotationStatus.Expired;
+            }
+        }
+
+        await ChangeStatusAsync(entity, ServiceRequestStatus.Cancelled, "Cancelled by the customer", cancellationToken);
+
+        var recipients = openInvitations.Select(x => x.Technician.UserId)
+            .Concat(openQuotes.Select(x => x.Technician.UserId))
+            .Distinct()
+            .ToList();
+        var message = service is null
+            ? "This request was cancelled by the customer. Invitations and quotations for this job are no longer open."
+            : $"This {service} request was cancelled by the customer. Invitations and quotations for this job are no longer open.";
+        foreach (var userId in recipients)
+        {
+            await notifications.NotifyAsync(userId, "Request cancelled by the customer", message, cancellationToken);
+        }
+
+        logger.LogInformation("Request {RequestId} cancelled by {UserId}", entity.Id, currentUser.UserId);
+        return Map(entity, includeAddress: true);
+    }
+
     public async Task<MediaDto> AddMediaAsync(Guid id, string fileName, string contentType, Stream content, CancellationToken cancellationToken = default)
     {
         var entity = await Load(id, cancellationToken);
@@ -216,8 +277,7 @@ public class RequestService(
 
         if (entity.Status == ServiceRequestStatus.ClarificationRequired && entity.CustomerId == currentUser.UserId)
         {
-            Transition(entity, ServiceRequestStatus.Analyzing, "Customer provided clarification");
-            await unitOfWork.SaveChangesAsync(cancellationToken);
+            await ChangeStatusAsync(entity, ServiceRequestStatus.Analyzing, "Customer provided clarification", cancellationToken);
             await orchestrator.ResumeAfterClarificationAsync(entity.Id, cancellationToken);
             return;
         }
@@ -264,30 +324,6 @@ public class RequestService(
         await unitOfWork.SaveChangesAsync(cancellationToken);
         await AddHistory(request, from, to, note, cancellationToken);
         await unitOfWork.SaveChangesAsync(cancellationToken);
-    }
-
-    private void Transition(ServiceRequest request, ServiceRequestStatus to, string note)
-    {
-        if (request.Status == to)
-        {
-            return;
-        }
-
-        if (!RequestStateMachine.CanTransition(request.Status, to))
-        {
-            throw new ConflictException($"Cannot move request from {EnumMap.ToApi(request.Status)} to {EnumMap.ToApi(to)}.");
-        }
-
-        var from = request.Status;
-        request.Status = to;
-        request.History.Add(new RequestStatusHistory
-        {
-            RequestId = request.Id,
-            ActorId = currentUser.UserId,
-            FromStatus = from,
-            ToStatus = to,
-            Note = note
-        });
     }
 
     private Task AddHistory(ServiceRequest request, ServiceRequestStatus from, ServiceRequestStatus to, string note, CancellationToken cancellationToken) =>

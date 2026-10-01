@@ -1,4 +1,4 @@
-import { useEffect, useState, type FormEvent } from 'react'
+﻿import { useEffect, useState, type FormEvent } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { UserPlus } from 'lucide-react'
 import { categoriesApi } from '../api/categories'
@@ -180,7 +180,7 @@ export function RegisterPage() {
             <TextInput type="password" value={password} onChange={(event) => setPassword(event.target.value)} />
           </FormField>
           <Button type="submit" disabled={busy} className="w-full">
-            {busy ? 'Creating account…' : 'Register'}
+            {busy ? 'Creating accountâ€¦' : 'Register'}
           </Button>
         </form>
         <p className="mt-5 text-sm text-[#6d6a64]">

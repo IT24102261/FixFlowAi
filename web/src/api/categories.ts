@@ -1,4 +1,4 @@
-import { apiClient } from './client'
+﻿import { apiClient } from './client'
 import type { CategoryDto, CategoryWriteRequest } from '../types/api'
 
 export const categoriesApi = {

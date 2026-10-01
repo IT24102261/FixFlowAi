@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+﻿import { useEffect, useMemo, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { adminApi } from '../../api/admin'
 import { techniciansApi } from '../../api/technicians'
@@ -105,7 +105,7 @@ export function AdminTechniciansPage() {
               disabled={uploadingId === row.id}
               onClick={() => fileInputs.current[row.id]?.click()}
             >
-              {uploadingId === row.id ? 'Saving…' : 'Set photo'}
+              {uploadingId === row.id ? 'Savingâ€¦' : 'Set photo'}
             </Button>
             <Link to={`/technicians/${row.id}`} className="font-medium text-[#c4a574] hover:text-[#171717]">
               Public profile
