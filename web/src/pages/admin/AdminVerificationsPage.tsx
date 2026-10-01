@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+﻿import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { techniciansApi } from '../../api/technicians'
 import { DataTable, type Column } from '../../components/ui/DataTable'
@@ -40,7 +40,7 @@ export function AdminVerificationsPage() {
           <span>{row.technicianDisplayName || shortId(row.technicianId)}</span>
         </span>
       ) },
-      { key: 'categoryName', header: 'Category', sortable: true, render: (row) => row.categoryName || '—' },
+      { key: 'categoryName', header: 'Category', sortable: true, render: (row) => row.categoryName || 'â€”' },
       { key: 'submittedAt', header: 'Submitted Date', sortable: true, render: (row) => formatDate(row.submittedAt) },
       { key: 'status', header: 'Status', render: (row) => <StatusBadge status={row.status} /> },
       { key: 'evidence', header: 'Evidence', render: (row) => String(row.evidenceCount ?? row.documents?.length ?? 0) },

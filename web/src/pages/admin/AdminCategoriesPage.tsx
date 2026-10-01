@@ -1,4 +1,4 @@
-import { useEffect, useState, type FormEvent } from 'react'
+﻿import { useEffect, useState, type FormEvent } from 'react'
 import { categoriesApi } from '../../api/categories'
 import { Button } from '../../components/ui/Button'
 import { ConfirmationModal } from '../../components/ui/ConfirmationModal'
@@ -108,7 +108,7 @@ export function AdminCategoriesPage() {
 
   const columns: Column<CategoryDto>[] = [
     { key: 'name', header: 'Name', render: (row) => row.name },
-    { key: 'description', header: 'Description', render: (row) => row.description || '—' },
+    { key: 'description', header: 'Description', render: (row) => row.description || 'â€”' },
     { key: 'status', header: 'Status', render: (row) => <StatusBadge status={row.isActive ? 'ACTIVE' : 'CANCELLED'} /> },
     {
       key: 'actions',
@@ -208,7 +208,7 @@ export function AdminCategoriesPage() {
           {categoryRequirements.map((item) => (
             <li key={item.id} className="flex items-center justify-between bg-[#f4efe6] px-4 py-3 text-sm">
               <span>
-                {item.evidenceType} · {item.validationMethod} · {item.isRequired ? 'Required' : 'Optional'}
+                {item.evidenceType} Â· {item.validationMethod} Â· {item.isRequired ? 'Required' : 'Optional'}
               </span>
               <button
                 type="button"

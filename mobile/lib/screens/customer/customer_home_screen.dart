@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fixflow_mobile/core/app_theme.dart';
 import 'package:fixflow_mobile/models/models.dart';
@@ -108,7 +108,12 @@ class _DashboardLists extends ConsumerWidget {
                                     children: [
                                       Text(item.categoryName ?? item.description, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontWeight: FontWeight.w600, color: AppColors.ink)),
                                       const SizedBox(height: 4),
-                                      Text('${item.serviceArea ?? 'Area not set'} · ${formatDate(item.createdAt)}', style: const TextStyle(fontSize: 12, color: AppColors.faint)),
+                                      Text(
+                                        item.status == 'CLARIFICATION_REQUIRED'
+                                            ? 'How many need to be changed? Tap to answer.'
+                                            : '${item.serviceArea ?? 'Area not set'} Â· ${formatDate(item.createdAt)}',
+                                        style: const TextStyle(fontSize: 12, color: AppColors.faint),
+                                      ),
                                     ],
                                   ),
                                 ),
@@ -140,7 +145,7 @@ class _DashboardLists extends ConsumerWidget {
                                     children: [
                                       Text(item.technicianDisplayName ?? 'Booking ${shortId(item.id)}', maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontWeight: FontWeight.w600, color: AppColors.ink)),
                                       const SizedBox(height: 4),
-                                      Text('${item.categoryName ?? 'Service'} · ${formatBookingStatus(item.status)}', style: const TextStyle(fontSize: 12, color: AppColors.faint)),
+                                      Text('${item.categoryName ?? 'Service'} Â· ${formatBookingStatus(item.status)}', style: const TextStyle(fontSize: 12, color: AppColors.faint)),
                                     ],
                                   ),
                                 ),
