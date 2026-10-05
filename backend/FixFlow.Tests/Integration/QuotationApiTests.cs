@@ -92,6 +92,7 @@ public class QuotationApiTests(FixFlowApiFixture fixture)
             totalAmount = 1000m,
             currency = "LKR",
             durationMinutes = 45,
+            arrivalStart = DateTimeOffset.UtcNow.AddHours(4),
             expiresAt = DateTimeOffset.UtcNow.AddDays(1)
         }, FixFlowApiFixture.Json);
 
@@ -202,6 +203,7 @@ public class QuotationApiTests(FixFlowApiFixture fixture)
             totalAmount = 2000m,
             currency = "LKR",
             durationMinutes = 40,
+            arrivalStart = DateTimeOffset.UtcNow.AddHours(6),
             expiresAt = DateTimeOffset.UtcNow.AddDays(1)
         }, FixFlowApiFixture.Json);
 
@@ -250,6 +252,7 @@ public class QuotationApiTests(FixFlowApiFixture fixture)
             totalAmount = 5000m,
             currency = "LKR",
             durationMinutes = 45,
+            arrivalStart = DateTimeOffset.UtcNow.AddHours(8),
             expiresAt = DateTimeOffset.UtcNow.AddDays(2)
         }, FixFlowApiFixture.Json);
 
@@ -275,6 +278,7 @@ public class QuotationApiTests(FixFlowApiFixture fixture)
             totalAmount = 6000m,
             currency = "LKR",
             durationMinutes = 60,
+            arrivalStart = DateTimeOffset.UtcNow.AddHours(5),
             expiresAt = DateTimeOffset.UtcNow.AddDays(2)
         }, FixFlowApiFixture.Json);
 
