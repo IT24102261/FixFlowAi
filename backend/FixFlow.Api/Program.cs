@@ -50,6 +50,7 @@ if (!app.Environment.IsEnvironment("Testing"))
         throw;
     }
 
+    await scope.ServiceProvider.GetRequiredService<AdminSeeder>().SeedAsync();
     await scope.ServiceProvider.GetRequiredService<JaffnaTechnicianSeeder>().SeedAsync();
     await scope.ServiceProvider.GetRequiredService<TechnicianPhotoSeeder>().SeedAsync();
 

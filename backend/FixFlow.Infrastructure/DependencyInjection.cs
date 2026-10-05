@@ -30,6 +30,7 @@ public static class DependencyInjection
         services.AddScoped(typeof(IRepository<>), typeof(EfRepository<>));
         services.AddScoped<IUnitOfWork, EfUnitOfWork>();
         services.AddScoped<JaffnaTechnicianSeeder>();
+        services.AddScoped<AdminSeeder>();
         services.AddScoped<JaffnaRequestSeeder>();
         services.AddScoped<NegomboElectricianSeeder>();
         services.AddScoped<TechnicianRatingSeeder>();
