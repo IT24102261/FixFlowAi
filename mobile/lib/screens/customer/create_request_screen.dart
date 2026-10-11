@@ -116,8 +116,8 @@ class _CreateRequestScreenState extends ConsumerState<CreateRequestScreen> {
         'address': _address.text.trim(),
         if (_lat != null) 'latitude': _lat,
         if (_lng != null) 'longitude': _lng,
-        if (start != null) 'preferredStart': start.toUtc().toIso8601String(),
-        if (start != null) 'preferredEnd': start.add(const Duration(hours: 2)).toUtc().toIso8601String(),
+       'preferredStart': start.toUtc().toIso8601String(),
+        'preferredEnd': start.add(const Duration(hours: 2)).toUtc().toIso8601String(),
       });
       if (_image != null) {
         await ref.read(apiProvider).addMedia(created.id, _image!.path, _image!.name);
