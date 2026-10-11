@@ -40,7 +40,7 @@ class SectionCard extends StatelessWidget {
                   ],
                 ),
               ),
-              if (action != null) action!,
+              if (action case final actionWidget) actionWidget,
             ],
           ),
           const SizedBox(height: 16),
