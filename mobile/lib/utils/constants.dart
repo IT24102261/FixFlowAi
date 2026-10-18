@@ -1,9 +1,8 @@
-import 'dart:io';
-
 class AppConstants {
   static const _envUrl = String.fromEnvironment('API_BASE_URL');
+  static const deployedApiUrl = 'https://backend1-2-aqau.onrender.com';
 
-  /// PC Wi-Fi address. A real phone must join this same Wi-Fi (not mobile data).
+  /// Local development endpoint; use --dart-define=API_BASE_URL=... to select it.
   static const wifiApiUrl = 'http://192.168.1.26:5080';
 
   /// PC Ethernet address, USB reverse, and emulator fallbacks.
@@ -16,11 +15,7 @@ class AppConstants {
 
   static String resolvedUrl = preferredUrl;
 
-  static String get preferredUrl => _envUrl.isNotEmpty
-      ? _envUrl
-      : Platform.isAndroid
-          ? wifiApiUrl
-          : 'http://127.0.0.1:5080';
+  static String get preferredUrl => _envUrl.isNotEmpty ? _envUrl : deployedApiUrl;
 
   static String get apiBaseUrl => resolvedUrl;
 }

@@ -39,19 +39,38 @@ class _QuoteCompareScreenState extends ConsumerState<QuoteCompareScreen> {
     try {
       final api = ref.read(apiProvider);
       final quotes = await api.quotes(widget.request.id);
-      final reviews = <String, List<Review>>{};
-      for (final quote in quotes) {
-        reviews[quote.technicianId] = await api.technicianReviews(quote.technicianId);
-      }
-      final history = await api.requestHistory(widget.request.id);
+      final visibleQuotes = quotes.where((item) => item.status == 'SENT' || item.status == 'ACCEPTED').toList();
+      if (!mounted) return;
       setState(() {
-        _quotes = quotes.where((item) => item.status == 'SENT' || item.status == 'ACCEPTED').toList();
-        _reviews.addAll(reviews);
-        _aiNote = history
+        _quotes = visibleQuotes;
+        _loading = false;
+      });
+
+      final reviews = <String, List<Review>>{};
+      for (final quote in visibleQuotes) {
+        try {
+          reviews[quote.technicianId] = await api.technicianReviews(quote.technicianId);
+        } catch (_) {
+          // Quotes remain usable when review data is temporarily unavailable.
+        }
+      }
+      String? aiNote;
+      try {
+        final history = await api.requestHistory(widget.request.id);
+        aiNote = history
             .map((item) => item.note)
             .whereType<String>()
             .where((note) => note.toLowerCase().contains('match') || note.toLowerCase().contains('invited'))
             .lastOrNull;
+      } catch (_) {
+        // Request history is supplementary; it must not hide quotations.
+      }
+      if (!mounted) return;
+      setState(() {
+        _reviews
+          ..clear()
+          ..addAll(reviews);
+        _aiNote = aiNote;
       });
     } catch (error) {
       setState(() => _error = error.toString());
@@ -65,6 +84,13 @@ class _QuoteCompareScreenState extends ConsumerState<QuoteCompareScreen> {
     return FixFlowScaffold(
       title: 'Compare quotations',
       description: 'We explain the quotations. You choose. FixFlow never books automatically.',
+      actions: [
+        IconButton(
+          tooltip: 'Refresh quotations',
+          onPressed: _loading ? null : _load,
+          icon: const Icon(Icons.refresh),
+        ),
+      ],
       body: _loading
           ? const Center(child: CircularProgressIndicator())
           : _error != null

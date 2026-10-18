@@ -73,22 +73,19 @@ class ApiClient {
   Future<void> resolveBaseUrl() async {
     if (_resolved) return;
     final preferred = AppConstants.preferredUrl;
-    final urls = [preferred, ...AppConstants.apiCandidates.where((url) => url != preferred)];
-    for (final url in urls) {
-      try {
-        final probe = Dio(BaseOptions(baseUrl: url, connectTimeout: const Duration(seconds: 3), receiveTimeout: const Duration(seconds: 3)));
-        final response = await probe.get<Map<String, dynamic>>('/api/health');
-        if (response.statusCode == 200) {
-          AppConstants.resolvedUrl = url;
-          _dio.options.baseUrl = url;
-          _refreshDio.options.baseUrl = url;
-          _resolved = true;
-          return;
-        }
-      } catch (_) {}
-    }
-    throw const ApiException(
-      'Cannot reach the FixFlow API. Connect this phone to the same Wi-Fi as the PC and turn off mobile data.',
+    try {
+      final probe = Dio(BaseOptions(baseUrl: preferred, connectTimeout: const Duration(seconds: 8), receiveTimeout: const Duration(seconds: 8)));
+      final response = await probe.get<Map<String, dynamic>>('/api/health');
+      if (response.statusCode == 200) {
+        AppConstants.resolvedUrl = preferred;
+        _dio.options.baseUrl = preferred;
+        _refreshDio.options.baseUrl = preferred;
+        _resolved = true;
+        return;
+      }
+    } catch (_) {}
+    throw ApiException(
+      'Cannot reach the FixFlow API at $preferred. Check your internet connection or API availability.',
     );
   }
 
@@ -125,7 +122,7 @@ class ApiClient {
     }
     if (error.type == DioExceptionType.connectionError || error.type == DioExceptionType.connectionTimeout) {
       throw const ApiException(
-        'Cannot reach the FixFlow API. Connect this phone to the same Wi-Fi as the PC and turn off mobile data.',
+        'Cannot reach the FixFlow API. Check your internet connection and try again.',
       );
     }
     throw ApiException(error.message ?? 'Request failed.');

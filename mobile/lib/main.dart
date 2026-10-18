@@ -4,6 +4,7 @@ import 'package:fixflow_mobile/core/app_theme.dart';
 import 'package:fixflow_mobile/models/models.dart';
 import 'package:fixflow_mobile/routes/app_router.dart';
 import 'package:fixflow_mobile/screens/admin/admin_home_screen.dart';
+import 'package:fixflow_mobile/screens/admin/admin_technician_approvals_screen.dart';
 import 'package:fixflow_mobile/screens/admin/admin_technicians_screen.dart';
 import 'package:fixflow_mobile/screens/admin/admin_verification_detail_screen.dart';
 import 'package:fixflow_mobile/screens/admin/admin_verifications_screen.dart';
@@ -163,6 +164,10 @@ class FixFlowApp extends StatelessWidget {
           case AppRoutes.adminHome:
             return MaterialPageRoute(
               builder: (_) => const RoleGuard(roles: AppRoutes.adminRoles, child: AdminHomeScreen()),
+            );
+          case AppRoutes.adminTechnicianApprovals:
+            return MaterialPageRoute(
+              builder: (_) => const RoleGuard(roles: AppRoutes.adminRoles, child: AdminTechnicianApprovalsScreen()),
             );
           case AppRoutes.adminTechnicians:
             return MaterialPageRoute(

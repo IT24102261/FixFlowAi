@@ -116,18 +116,26 @@ class _CreateRequestScreenState extends ConsumerState<CreateRequestScreen> {
         'address': _address.text.trim(),
         if (_lat != null) 'latitude': _lat,
         if (_lng != null) 'longitude': _lng,
-       'preferredStart': start.toUtc().toIso8601String(),
+        'preferredStart': start.toUtc().toIso8601String(),
         'preferredEnd': start.add(const Duration(hours: 2)).toUtc().toIso8601String(),
       });
+      String? mediaWarning;
       if (_image != null) {
-        await ref.read(apiProvider).addMedia(created.id, _image!.path, _image!.name);
+        try {
+          await ref.read(apiProvider).addMedia(created.id, _image!.path, _image!.name);
+        } catch (_) {
+          mediaWarning = 'The request was submitted, but its image could not be uploaded.';
+        }
       }
       final submitted = await ref.read(apiProvider).submitRequest(created.id);
       if (!mounted) return;
+      final notices = <String>[];
       if (submitted.status == 'CLARIFICATION_REQUIRED') {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('How many need to be changed? Answer that before technicians are invited.')),
-        );
+        notices.add('How many need to be changed? Answer that before technicians are invited.');
+      }
+      if (mediaWarning != null) notices.add(mediaWarning);
+      if (notices.isNotEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(notices.join('\n'))));
       }
       Navigator.pushReplacementNamed(context, AppRoutes.requestDetail, arguments: created.id);
     } catch (error) {

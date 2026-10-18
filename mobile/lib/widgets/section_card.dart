@@ -33,14 +33,14 @@ class SectionCard extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(title, style: Theme.of(context).textTheme.titleLarge),
-                    if (description != null) ...[
+                    if (description case final detail?) ...[
                       const SizedBox(height: 4),
-                      Text(description!, style: const TextStyle(color: AppColors.muted, fontSize: 13, height: 1.45)),
+                      Text(detail, style: const TextStyle(color: AppColors.muted, fontSize: 13, height: 1.45)),
                     ],
                   ],
                 ),
               ),
-            ?action,
+              ?action,
             ],
           ),
           const SizedBox(height: 16),

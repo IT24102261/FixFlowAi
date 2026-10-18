@@ -30,26 +30,33 @@ class RequestHistoryScreen extends ConsumerWidget {
           if (data.items.isEmpty) {
             return const EmptyView(message: 'You have not created any requests yet.');
           }
-          return ListView.separated(
-            padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
-            itemCount: data.items.length,
-            separatorBuilder: (_, _) => const SizedBox(height: 8),
-            itemBuilder: (context, index) {
-              final item = data.items[index];
-              return Card(
-                child: ListTile(
-                  title: Text(item.categoryName ?? 'Service request'),
-                  subtitle: Text(
-                    item.status == 'CLARIFICATION_REQUIRED'
-                        ? '${item.description}\nHow many need to be changed? Tap to answer, then the request is submitted.'
-                        : '${item.description}\n${formatDate(item.createdAt)}',
-                  ),
-                  isThreeLine: true,
-                  trailing: StatusChip(label: item.status),
-                  onTap: () => Navigator.pushNamed(context, AppRoutes.requestDetail, arguments: item.id),
-                ),
-              );
+          return RefreshIndicator(
+            onRefresh: () async {
+              ref.invalidate(_requestsProvider);
+              await ref.read(_requestsProvider.future);
             },
+            child: ListView.separated(
+              physics: const AlwaysScrollableScrollPhysics(),
+              padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
+              itemCount: data.items.length,
+              separatorBuilder: (_, _) => const SizedBox(height: 8),
+              itemBuilder: (context, index) {
+                final item = data.items[index];
+                return Card(
+                  child: ListTile(
+                    title: Text(item.categoryName ?? 'Service request'),
+                    subtitle: Text(
+                      item.status == 'CLARIFICATION_REQUIRED'
+                          ? '${item.description}\nHow many need to be changed? Tap to answer, then the request is submitted.'
+                          : '${item.description}\n${formatDate(item.createdAt)}',
+                    ),
+                    isThreeLine: true,
+                    trailing: StatusChip(label: item.status),
+                    onTap: () => Navigator.pushNamed(context, AppRoutes.requestDetail, arguments: item.id),
+                  ),
+                );
+              },
+            ),
           );
         },
       ),
