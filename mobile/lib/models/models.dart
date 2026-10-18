@@ -102,6 +102,48 @@ class UserProfile {
       };
 }
 
+    class AdminTechnicianAccount {
+      const AdminTechnicianAccount({
+        required this.id,
+        required this.email,
+        required this.displayName,
+        required this.role,
+        required this.isActive,
+        required this.createdAt,
+        required this.loginStatus,
+        this.phone,
+        this.address,
+        this.serviceArea,
+        this.requestedCategory,
+      });
+
+      final String id;
+      final String email;
+      final String displayName;
+      final String role;
+      final bool isActive;
+      final DateTime createdAt;
+      final String loginStatus;
+      final String? phone;
+      final String? address;
+      final String? serviceArea;
+      final String? requestedCategory;
+
+      factory AdminTechnicianAccount.fromJson(Map<String, dynamic> json) => AdminTechnicianAccount(
+            id: json['id']?.toString() ?? '',
+            email: json['email']?.toString() ?? '',
+            displayName: json['displayName']?.toString() ?? '',
+            role: json['role']?.toString() ?? '',
+            isActive: json['isActive'] as bool? ?? false,
+            createdAt: _dt(json['createdAt']) ?? DateTime.now(),
+            loginStatus: json['loginStatus']?.toString() ?? 'PENDING',
+            phone: json['phone']?.toString(),
+            address: json['address']?.toString(),
+            serviceArea: json['serviceArea']?.toString(),
+            requestedCategory: json['requestedCategory']?.toString(),
+          );
+    }
+
 class Category {
   const Category({required this.id, required this.name, this.description, this.isActive = true});
 

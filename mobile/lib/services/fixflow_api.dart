@@ -287,6 +287,23 @@ class FixFlowApi {
         return PagedResult.fromJson(response.data ?? {}, TechnicianApplication.fromJson);
       });
 
+  Future<PagedResult<AdminTechnicianAccount>> adminTechnicianAccounts({int page = 1, String status = 'PENDING'}) =>
+      _guard(() async {
+        final response = await _client.http.get<Map<String, dynamic>>(
+          '/api/admin/users',
+          queryParameters: {'page': page, 'pageSize': 50, 'role': 'TECHNICIAN', 'status': status},
+        );
+        return PagedResult.fromJson(response.data ?? {}, AdminTechnicianAccount.fromJson);
+      });
+
+  Future<AdminTechnicianAccount> setTechnicianAccountActive(String id, bool isActive) => _guard(() async {
+        final response = await _client.http.patch<Map<String, dynamic>>(
+          '/api/admin/users/$id/status',
+          data: {'isActive': isActive},
+        );
+        return AdminTechnicianAccount.fromJson(response.data ?? {});
+      });
+
   Future<TechnicianApplication> adminApplication(String id) => _guard(() async {
         final response = await _client.http.get<Map<String, dynamic>>('/api/admin/technician-applications/$id');
         return TechnicianApplication.fromJson(response.data ?? {});

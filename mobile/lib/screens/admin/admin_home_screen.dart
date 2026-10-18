@@ -17,6 +17,15 @@ class AdminHomeScreen extends ConsumerWidget {
         children: [
           ListTile(
             tileColor: AppColors.cream,
+            leading: const Icon(Icons.lock_open_outlined),
+            title: const Text('Technician login approvals'),
+            subtitle: const Text('Approve registered technicians before they can sign in.'),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () => Navigator.pushNamed(context, AppRoutes.adminTechnicianApprovals),
+          ),
+          const SizedBox(height: 8),
+          ListTile(
+            tileColor: AppColors.cream,
             leading: const Icon(Icons.verified_outlined),
             title: const Text('Verifications'),
             subtitle: const Text('Review NIC, profile photo, and certificates.'),

@@ -1,10 +1,11 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fixflow_mobile/models/models.dart';
 import 'package:fixflow_mobile/providers/app_providers.dart';
 import 'package:fixflow_mobile/routes/app_router.dart';
 import 'package:fixflow_mobile/utils/formatters.dart';
-import 'package:fixflow_mobile/widgets/async_body.dart';
 import 'package:fixflow_mobile/widgets/fixflow_ui.dart';
 import 'package:fixflow_mobile/widgets/status_chip.dart';
 
@@ -15,25 +16,54 @@ class TechnicianInvitationsScreen extends ConsumerStatefulWidget {
   ConsumerState<TechnicianInvitationsScreen> createState() => _TechnicianInvitationsScreenState();
 }
 
-class _TechnicianInvitationsScreenState extends ConsumerState<TechnicianInvitationsScreen> {
+class _TechnicianInvitationsScreenState extends ConsumerState<TechnicianInvitationsScreen>
+    with WidgetsBindingObserver {
   List<Invitation> _items = [];
   String? _error;
   bool _loading = true;
+  bool _requestInProgress = false;
+  Timer? _refreshTimer;
 
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _load();
+    _refreshTimer = Timer.periodic(const Duration(seconds: 20), (_) {
+      if (WidgetsBinding.instance.lifecycleState == AppLifecycleState.resumed) {
+        _load();
+      }
+    });
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) _load();
+  }
+
+  @override
+  void dispose() {
+    _refreshTimer?.cancel();
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
   }
 
   Future<void> _load() async {
+    if (_requestInProgress) return;
+    _requestInProgress = true;
     try {
       final items = await ref.read(apiProvider).invitations();
-      setState(() => _items = items);
+      if (!mounted) return;
+      setState(() {
+        _items = items;
+        _error = null;
+      });
     } catch (error) {
+      if (!mounted) return;
       setState(() => _error = error.toString());
     } finally {
-      if (mounted) setState(() => _loading = false);
+      _requestInProgress = false;
+      if (mounted && _loading) setState(() => _loading = false);
     }
   }
 
@@ -43,16 +73,35 @@ class _TechnicianInvitationsScreenState extends ConsumerState<TechnicianInvitati
       kind: WorkspaceKind.technician,
       tabIndex: 1,
       title: 'Invitations',
-      description: 'See new requests in your approved trade.',
+      description: 'New invitations refresh automatically while this screen is open. Pull down to check now.',
+      actions: [
+        IconButton(
+          tooltip: 'Refresh invitations',
+          onPressed: _requestInProgress ? null : _load,
+          icon: const Icon(Icons.refresh),
+        ),
+      ],
       body: _loading
           ? const Center(child: CircularProgressIndicator())
-          : _error != null
-              ? ErrorView(message: _error!, onRetry: _load)
-              : _items.isEmpty
-                  ? const EmptyView(message: 'No invitations yet. If a customer cancels a job, it leaves this list and shows under Notifications.')
-                  : ListView(
+          : RefreshIndicator(
+              onRefresh: _load,
+              child: ListView(
+                physics: const AlwaysScrollableScrollPhysics(),
                       padding: const EdgeInsets.all(16),
-                      children: _items
+                      children: [
+                        if (_error != null)
+                          Padding(
+                            padding: const EdgeInsets.only(bottom: 12),
+                            child: Text(_error!, style: TextStyle(color: Theme.of(context).colorScheme.error)),
+                          ),
+                        if (_items.isEmpty)
+                          const Padding(
+                            padding: EdgeInsets.only(top: 24),
+                            child: Center(
+                              child: Text('No invitations yet. Pull down to check again.'),
+                            ),
+                          ),
+                        ..._items
                           .map(
                             (item) => Card(
                               child: Padding(
@@ -111,8 +160,9 @@ class _TechnicianInvitationsScreenState extends ConsumerState<TechnicianInvitati
                               ),
                             ),
                           )
-                          .toList(),
+                      ],
                     ),
+            ),
     );
   }
 }
